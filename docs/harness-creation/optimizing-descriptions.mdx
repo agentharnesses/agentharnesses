@@ -1,0 +1,86 @@
+---
+title: Optimizing Descriptions
+description: How to write descriptions that help agents activate the right skills at the right time.
+---
+
+# Optimizing Descriptions
+
+Descriptions are short but load-bearing. They are the primary signal an agent uses during the **Activation** phase to decide which skills and references are relevant to a given task. A poor description means skills get ignored or loaded unnecessarily.
+
+## The description field
+
+Every `HARNESS.md`, `SKILL.md`, and harness-level reference file has a `description` field in its frontmatter. Write this field as if you're answering the question: *"When should an agent use this?"*
+
+```yaml
+---
+description: Condense a piece of text into a concise summary preserving the main argument.
+---
+```
+
+Not:
+
+```yaml
+---
+description: Summarization skill.
+---
+```
+
+---
+
+## Rules for good descriptions
+
+### Be specific about the trigger
+
+A description should make it obvious when this skill or reference applies. Include the input type, the output type, or the situation.
+
+| Weak | Strong |
+|---|---|
+| "Handles blog posts" | "Draft or edit a long-form blog article from an outline or brief" |
+| "Database stuff" | "Read from and write to the PostgreSQL product database" |
+| "Style information" | "Typography, tone, and formatting rules for all marketing output" |
+
+### Use verbs for skills, nouns for references
+
+Skills are actions; references are knowledge. This distinction helps agents classify what they're loading.
+
+- Skill: *"Generate a social media caption from a product description"*
+- Reference: *"Brand voice guidelines and prohibited language list"*
+
+### Don't describe implementation details
+
+The description is for relevance matching, not for explaining how the skill works. Keep implementation detail in the body.
+
+| Too much detail | Right level |
+|---|---|
+| "Uses Python script to call the OpenAI images API with a 1024x1024 resolution and returns a URL" | "Generate an image prompt and produce a visual asset from a text description" |
+
+### Match the vocabulary users will use
+
+Agents compare task descriptions against skill descriptions. If your users say "summarize this" and your skill description says "condense and abridge", there's a mismatch. Use the words your users reach for naturally.
+
+---
+
+## Descriptions in HARNESS.md body
+
+Inside the `HARNESS.md` body, you list skills and references with inline descriptions. These should be even shorter — one clause is ideal — because the agent is scanning a list, not reading a document.
+
+```markdown
+**Skills**
+- `create-blog-post` — draft or edit a long-form blog article
+- `generate-images` — produce a visual asset from a text description
+- `scan-social` — search and summarize recent social media activity
+
+**References**
+- `style-guide.md` — typography, tone, and formatting rules for all output
+- `brand-priorities.md` — current campaign focus areas and voice guidelines
+```
+
+Each entry should be self-contained: a reader (or agent) who has never seen the harness should immediately understand what that skill or reference is for.
+
+---
+
+## Testing descriptions
+
+The practical test for a description is to give it to a colleague (or the agent itself) and ask: "Based only on this description, would you know when to use this?" If the answer is "it depends" or "I'm not sure", the description needs work.
+
+See [Evaluating Harnesses](/harness-creation/evaluating-harnesses) for a systematic approach to testing description quality.

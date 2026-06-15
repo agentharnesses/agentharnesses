@@ -1,0 +1,44 @@
+---
+title: Agent Harnesses
+description: A standardized way to give AI agents roles, environments, and capabilities.
+---
+
+# Agent Harnesses
+
+Agent Harnesses provide a lightweight, open format for defining the complete environment an AI agent needs to fulfill a role — bundling skills, reference material, and identity into a single portable folder.
+
+## What is a Harness?
+
+A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup an agent loads the harness name and description. As tasks arrive, it pulls in only the skills and references each task requires. This **progressive disclosure** model keeps context window usage low while still giving agents access to rich, structured knowledge.
+
+```
+my-harness/
+├── HARNESS.md        # Required: identity + overview
+├── skills/           # Optional: Agent Skills bundles
+└── references/       # Optional: cross-skill documentation
+```
+
+## How Harnesses Relate to Skills
+
+The [Agent Skills](https://github.com/agentskills/agentskills) standard defines how to package a single atomic capability — how to write to a database, how to post to social media, how to generate an image. A harness bundles many of those skills together to define a **complete agent role**, the same way a job description bundles many individual responsibilities.
+
+## One Harness Per Agent
+
+Every agent gets exactly one harness. The harness defines the agent's role. If your system requires multiple roles, use multiple agents — each with its own harness. Skills and references may be shared across harnesses to keep multiple agents aligned.
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card title="Specification" icon="file-lines" href="/specification">
+    Read the full format definition.
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/harness-creation/quickstart">
+    Build your first harness in minutes.
+  </Card>
+  <Card title="Best Practices" icon="star" href="/harness-creation/best-practices">
+    Learn how to structure harnesses well.
+  </Card>
+  <Card title="Client Support" icon="code" href="/client-implementation/adding-harnesses-support">
+    Add harness support to your AI client.
+  </Card>
+</CardGroup>

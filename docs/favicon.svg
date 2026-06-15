@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="16 6 68 68">
+  <!-- Top hexagon -->
+  <polygon points="50,10 64,18 50,26 36,18" fill="#333333"/>
+  <polygon points="64,18 64,34 50,42 50,26" fill="#0a0a0a"/>
+  <polygon points="36,18 50,26 50,42 36,34" fill="#1a1a1a"/>
+
+  <!-- Bottom-left hexagon -->
+  <polygon points="34,38 48,46 34,54 20,46" fill="#333333"/>
+  <polygon points="48,46 48,62 34,70 34,54" fill="#0a0a0a"/>
+  <polygon points="20,46 34,54 34,70 20,62" fill="#1a1a1a"/>
+
+  <!-- Bottom-right hexagon -->
+  <polygon points="66,38 80,46 66,54 52,46" fill="#333333"/>
+  <polygon points="80,46 80,62 66,70 66,54" fill="#0a0a0a"/>
+  <polygon points="52,46 66,54 66,70 52,62" fill="#1a1a1a"/>
+</svg>

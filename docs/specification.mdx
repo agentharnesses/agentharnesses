@@ -1,0 +1,186 @@
+---
+title: Specification
+description: The complete Agent Harnesses format specification.
+---
+
+# Specification
+
+## Overview
+
+A harness is a directory that gives an AI agent everything it needs to fulfill a role. It consists of three components:
+
+| Component | Required | Purpose |
+|---|---|---|
+| `HARNESS.md` | Yes | Identity, description, and structural overview |
+| `skills/` | No | Atomic capabilities following the Agent Skills standard |
+| `references/` | No | Cross-cutting documentation that applies across skills |
+
+```
+my-harness/
+├── HARNESS.md
+├── skills/
+│   └── my-skill/
+│       └── SKILL.md
+└── references/
+    └── style-guide.md
+```
+
+---
+
+## HARNESS.md
+
+`HARNESS.md` is the required entry point for every harness. It uses YAML frontmatter followed by a markdown body.
+
+### Frontmatter
+
+```yaml
+---
+name: <name>
+description: <one-line description>
+---
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | Yes | Short human-readable name for the harness |
+| `description` | Yes | One sentence describing what this harness enables an agent to do |
+
+### Body
+
+The body is free-form markdown. It must give the agent enough information to:
+
+- Understand the scope and purpose of the harness
+- Know which skills exist and when to use each one
+- Know which references exist and when to consult them
+
+The body should be **as brief as possible while remaining complete**. It is loaded into the agent's context window on activation and competes with other context. Avoid prose that restates the frontmatter description or explains concepts the agent already knows.
+
+A well-structured body typically includes:
+- A one-paragraph summary of the agent's role
+- A bulleted index of skills with one-line descriptions
+- A bulleted index of references with one-line descriptions
+
+### Example
+
+```markdown
+---
+name: Marketing Assistant
+description: Helps create and review marketing content across blog, social, and visual channels.
+---
+
+You are a marketing assistant. Use the skills and references below to produce
+content that is on-brand, consistent, and appropriate for each channel.
+
+**Skills**
+- `create-blog-post` — draft and edit long-form blog articles
+- `generate-images` — produce image prompts and review generated visuals
+- `scan-social` — search and summarize recent social media activity
+
+**References**
+- `style-guide.md` — typography, tone, and formatting rules for all content
+- `brand-priorities.md` — current campaign priorities and brand voice guidelines
+```
+
+---
+
+## Skills Directory
+
+The `skills/` directory contains one subdirectory per skill. Each skill follows the [Agent Skills standard](https://github.com/agentskills/agentskills) exactly:
+
+```
+skills/
+└── my-skill/
+    ├── SKILL.md          # Required: metadata + instructions
+    ├── scripts/          # Optional: executable code
+    ├── references/       # Optional: skill-specific documentation
+    └── assets/           # Optional: templates, resources
+```
+
+Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate:
+
+```
+skills/
+├── content-creation/
+│   ├── create-blog-post/
+│   └── generate-images/
+└── research/
+    └── scan-social/
+```
+
+When subdirectories are used, the grouping structure should be reflected in `HARNESS.md` so the agent understands the organization without having to traverse the filesystem.
+
+---
+
+## References Directory
+
+The `references/` directory contains markdown documents that provide **cross-skill context** — information that is relevant to more than one skill or that describes the agent's environment at a higher level of abstraction than any individual skill.
+
+Typical reference content:
+- Brand guidelines and style guides
+- Organizational priorities or constraints
+- Infrastructure overviews and environment details
+- Personas, audiences, or stakeholder maps
+
+### Reference File Format
+
+Each reference file should include frontmatter with a `description` field so agents can evaluate relevance before reading the full document:
+
+```markdown
+---
+description: <one-line summary of what this document covers>
+---
+
+<body>
+```
+
+The `description` is used during the Activation phase (see [Loading Model](#loading-model)) to decide whether a reference is relevant to the current task.
+
+### Organization
+
+Like the skills directory, references may be organized into subdirectories:
+
+```
+references/
+├── brand/
+│   ├── style-guide.md
+│   └── voice-guidelines.md
+└── infrastructure/
+    ├── database-overview.md
+    └── api-inventory.md
+```
+
+Subdirectory structure should be reflected in `HARNESS.md`.
+
+---
+
+## Loading Model
+
+Harnesses use **progressive disclosure** — agents load only what each task requires.
+
+| Phase | Trigger | What the agent loads |
+|---|---|---|
+| **Discovery** | Session start | `name` and `description` from `HARNESS.md` frontmatter only |
+| **Activation** | Task received | Full `HARNESS.md` body; skill and reference descriptions |
+| **Execution** | Task in progress | Full content of relevant skills and references, on demand |
+
+This model allows a harness to contain dozens of skills and references without consuming the full context window on every interaction.
+
+---
+
+## Multi-Agent Model
+
+When a system requires multiple distinct roles, use multiple agents — each with its own harness.
+
+| Rule | Rationale |
+|---|---|
+| Each agent has exactly one role | Roles should be scoped like job descriptions: coherent and bounded |
+| Each agent has exactly one harness | The harness defines and constrains the role |
+| Multiple roles → multiple agents | Don't put unrelated capabilities in one harness |
+| Skills and references may be shared across harnesses | Shared assets keep multiple agents aligned |
+| Skills should be atomic | One responsibility per skill; compose at the harness level |
+
+---
+
+## Versioning
+
+Harnesses do not define a required versioning scheme. It is recommended to version harnesses using standard version control (git) and to pin skill dependencies by directory rather than by registry reference.

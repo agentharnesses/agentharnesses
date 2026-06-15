@@ -1,0 +1,47 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Agent Harnesses",
+  "colors": {
+    "primary": "#7f7f7f",
+    "light": "#bfbfbf",
+    "dark": "#404040"
+  },
+  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/agentharnesses/agentharnesses"
+    }
+  },
+  "navigation": {
+    "pages": [
+      "home",
+      "specification",
+      "clients",
+      {
+        "group": "For harness creators",
+        "pages": [
+          "harness-creation/quickstart",
+          "harness-creation/best-practices",
+          "harness-creation/optimizing-descriptions",
+          "harness-creation/evaluating-harnesses",
+          "harness-creation/using-scripts"
+        ]
+      },
+      {
+        "group": "For client implementors",
+        "pages": [
+          "client-implementation/adding-harnesses-support"
+        ]
+      }
+    ]
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "claude"
+    ]
+  }
+}

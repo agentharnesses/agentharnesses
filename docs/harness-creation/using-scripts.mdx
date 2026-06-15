@@ -1,0 +1,78 @@
+---
+title: Using Scripts
+description: How to bundle executable code with skills inside a harness.
+---
+
+# Using Scripts
+
+Scripts give an agent the ability to take actions — running code, calling APIs, reading files — rather than just reasoning about them. Scripts live inside individual skills, not at the harness level.
+
+## Where scripts live
+
+Scripts belong in the `scripts/` subdirectory of a skill, not in the harness root:
+
+```
+my-harness/
+├── HARNESS.md
+└── skills/
+    └── query-database/
+        ├── SKILL.md
+        └── scripts/
+            └── run_query.py
+```
+
+The harness is responsible for bundling the right skills together. The skill is responsible for bundling the right scripts together. This separation keeps the harness root clean and makes skills independently portable.
+
+---
+
+## Referencing scripts from SKILL.md
+
+In `SKILL.md`, tell the agent when and how to invoke the script:
+
+```markdown
+---
+name: Query Database
+description: Run a read-only SQL query against the product database and return results.
+---
+
+To query the database:
+1. Identify the data the user needs.
+2. Write a read-only SQL SELECT statement.
+3. Run `scripts/run_query.py` with the SQL as a command-line argument.
+4. Return the results to the user in a readable format.
+
+**Script:** `scripts/run_query.py <sql>`
+```
+
+Be explicit about the script's interface: arguments, expected output, and any error conditions the agent should handle.
+
+---
+
+## What belongs in scripts vs. in the SKILL.md body
+
+| Belongs in scripts | Belongs in SKILL.md |
+|---|---|
+| Code that calls an external API | When and why to call the API |
+| File I/O, database queries | What data to look for and how to interpret it |
+| Computations on structured data | How to present results to the user |
+| Authentication and credential handling | Which credential or environment variable to use |
+
+Scripts handle execution. `SKILL.md` handles reasoning.
+
+---
+
+## Script conventions
+
+These aren't enforced by the spec, but they produce more reliable agent behavior:
+
+- **Use stdin/stdout.** Scripts should read input from command-line arguments or stdin and write results to stdout. This makes them easy for agents to invoke and parse.
+- **Exit with a non-zero code on failure.** Agents can detect failure and reason about it if the script communicates errors through exit codes.
+- **Print structured output.** JSON or simple key-value output is easier for agents to parse than prose.
+- **Keep scripts focused.** One script per distinct action; let the agent decide which script to call, not the script itself.
+- **Don't embed credentials.** Use environment variables. Document which variables are required in `SKILL.md`.
+
+---
+
+## Harness-level scripts
+
+The spec does not define a `scripts/` directory at the harness root. If you find yourself wanting harness-level scripts, consider whether they belong in a shared skill that multiple other skills depend on, or whether they represent a new atomic capability that should become its own skill.

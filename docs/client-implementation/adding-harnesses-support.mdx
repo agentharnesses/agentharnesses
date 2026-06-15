@@ -1,0 +1,146 @@
+---
+title: Adding Harness Support
+description: How to implement the Agent Harnesses standard in your AI client or tool.
+---
+
+# Adding Harness Support
+
+This guide is for developers building AI clients, IDEs, agent frameworks, or other tools who want to support the Agent Harnesses standard.
+
+## What clients must implement
+
+A compliant client must:
+
+1. **Discover** a harness by reading `HARNESS.md` frontmatter (`name` and `description`)
+2. **Activate** the harness when a session starts, loading the full `HARNESS.md` body and indexing skill and reference descriptions
+3. **Execute** individual skills and references on demand as tasks require
+
+Clients may implement additional features (caching, skill search, UI affordances) but these three behaviors are the baseline.
+
+---
+
+## Loading model in detail
+
+### Phase 1 — Discovery
+
+At session start, read only the frontmatter from `HARNESS.md`:
+
+```python
+harness = parse_frontmatter("HARNESS.md")
+print(harness.name)         # "Marketing Assistant"
+print(harness.description)  # "Helps create and review marketing content..."
+```
+
+Use `name` and `description` to present the harness to the user or to route sessions to the correct harness when multiple are installed.
+
+### Phase 2 — Activation
+
+When a session begins with a harness, inject into the agent's context:
+
+1. The full body of `HARNESS.md`
+2. The `name` and `description` of every skill in `skills/` (read from each `SKILL.md` frontmatter)
+3. The `description` of every reference in `references/` (read from each file's frontmatter)
+
+Do **not** inject full skill bodies or full reference content at this stage. The agent uses the descriptions to decide what to load next.
+
+```python
+context = []
+context.append(read_full("HARNESS.md"))
+
+for skill in list_skills("skills/"):
+    context.append(f"Skill: {skill.name} — {skill.description}")
+
+for ref in list_references("references/"):
+    context.append(f"Reference: {ref.filename} — {ref.description}")
+
+inject_into_context(context)
+```
+
+### Phase 3 — Execution
+
+When the agent determines it needs a skill or reference, your client should:
+
+1. Receive a tool call or structured request from the agent naming the skill or reference
+2. Read the full content of the requested file
+3. Inject it into context or return it as a tool result
+
+Expose two tools to the agent:
+
+```
+load_skill(name: str) -> str
+    Returns the full content of skills/<name>/SKILL.md and lists any available scripts.
+
+load_reference(filename: str) -> str
+    Returns the full content of references/<filename>.
+```
+
+---
+
+## Handling subdirectories
+
+Skills and references may be organized into subdirectories. When indexing at activation time, traverse recursively and index every `SKILL.md` and every markdown reference file found at any depth. Preserve the relative path so the agent can identify items unambiguously:
+
+```
+skills/content-creation/create-blog-post/SKILL.md  →  name: "create-blog-post"
+skills/research/scan-social/SKILL.md               →  name: "scan-social"
+```
+
+---
+
+## Script execution
+
+When an agent invokes a script bundled inside a skill, your client is responsible for executing it. The expected interface:
+
+- Scripts receive input via command-line arguments or stdin
+- Scripts write results to stdout
+- Non-zero exit code indicates failure; stderr contains the error message
+
+Clients should sandbox script execution appropriately for their environment and expose a `run_script(skill: str, script: str, args: list[str]) -> str` tool to the agent.
+
+---
+
+## Validation
+
+Use the `harnesses-ref` CLI to validate a harness before loading it:
+
+```bash
+pip install harnesses-ref
+harnesses-ref validate ./my-harness
+```
+
+Clients may run this check at install time and surface validation errors to the user.
+
+---
+
+## Minimal example
+
+A minimal Python implementation of harness loading:
+
+```python
+from pathlib import Path
+import yaml
+
+def load_harness(harness_path: Path) -> dict:
+    harness_md = (harness_path / "HARNESS.md").read_text()
+    frontmatter, body = parse_frontmatter_and_body(harness_md)
+
+    skills = []
+    for skill_md in harness_path.glob("skills/**/SKILL.md"):
+        fm, _ = parse_frontmatter_and_body(skill_md.read_text())
+        skills.append({"name": fm["name"], "description": fm["description"],
+                       "path": skill_md.parent})
+
+    references = []
+    for ref in harness_path.glob("references/**/*.md"):
+        fm, _ = parse_frontmatter_and_body(ref.read_text())
+        references.append({"filename": ref.name, "description": fm.get("description", ""),
+                            "path": ref})
+
+    return {
+        "name": frontmatter["name"],
+        "description": frontmatter["description"],
+        "body": body,
+        "skills": skills,
+        "references": references,
+    }
+```
