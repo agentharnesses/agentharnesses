@@ -1,15 +1,15 @@
 ---
 title: Agent Harnesses
-description: A standardized way to give AI agents roles, environments, and capabilities.
+description: A standardized way to give AI agents roles, context, and capabilities.
 ---
 
 # Agent Harnesses
 
-Agent Harnesses provide a lightweight, open format for defining the complete environment an AI agent needs to fulfill a role — bundling skills, reference material, and identity into a single portable folder.
+Agent Harnesses provide a lightweight, open format for defining the complete context an AI agent needs to fulfill a role. Harnesses do this by bundling skills and reference material into a single, portable, and defined structure.
 
 ## What is a Harness?
 
-A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup an agent loads the harness name and description. As tasks arrive, it pulls in only the skills and references each task requires. This allows for **progressive disclosure**, as defined in the Agent Skills specification, to be applied on the harness level.
+A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup an agent loads the harness name and description. As tasks arrive, it pulls in only the skills and references each task requires. This allows for **progressive disclosure**, similarly to what is defined in the Agent Skills specification, to be applied at the harness level.
 
 ```
 my-harness/
@@ -20,13 +20,15 @@ my-harness/
 
 ## How Harnesses Relate to Skills
 
-The [Agent Skills](https://github.com/agentskills/agentskills) standard defines how to package a single atomic capability. A harness bundles many of these skills together to define a **complete agent role**, the same way a job description bundles many individual responsibilities.
+The [Agent Skills](https://github.com/agentskills/agentskills) standard defines how to package a single atomic capability; like "interact with a database" or "create brand assets". A harness bundles many of these skills together to define a **complete agent role**.
+
+One analogy is to conceptualize a harness as a job title, where skills are like the job requirements. A "technical support" role/harness might have "database management", "ticket response", and "spreadsheet modification" requirements/skills.
 
 ## Why do Harnesses Exist, and Why This Specification?
 
 Harnesses have emerged organically across the industry as a necessity. When defining complex agents, many skills need to be leveraged in tandem, and much information is required to contextualize those skills and how they relate to the environment the agent is working in.
 
-Because of the richness of information required, agents that employ large harnesses are often slow. The underlying LLM needs to scan through large sets of documentation and a wide array of skills to effectively make correct decisions. Because harnesses don't have a single unified definition, it is difficult for agent developers to deal with this problem.
+Because of the richness of information required, agents that employ large harnesses are often slow. The underlying LLM needs to scan through large sets of documentation and a wide array of skills to effectively make correct decisions. Harnesses don't currently have a defined structure, making it is difficult to optimize agents to leverage the information within a harness efficiently.
 
 The goal of the "Agent Harnesses" standard is to standardize how agent harnesses are defined; making it easier to create harnesses, and to build agents that leverage them efficiently and effectively.
 
