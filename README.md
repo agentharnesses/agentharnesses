@@ -40,17 +40,6 @@ The [`examples/`](./examples) directory contains three fully worked harnesses:
 | [`software-development-assistant`](./examples/software-development-assistant) | Reads code, makes edits, and runs tests in a codebase |
 | [`writing-publishing-assistant`](./examples/writing-publishing-assistant) | Searches existing posts, finds reusable images, and drafts new content |
 
-## Harness Management Skills
-
-The [`harness-management-skills/`](./harness-management-skills) directory contains Agent Skills that give an agent the ability to build and maintain harnesses:
-
-| Skill | Description |
-|---|---|
-| [`create-harness`](./harness-management-skills/create-harness) | Scaffold a new harness from scratch |
-| [`update-harness`](./harness-management-skills/update-harness) | Iteratively improve an existing harness |
-
-Add these skills to any harness where you want the agent to be able to create or refine harnesses itself.
-
 ## License
 
 Code: Apache 2.0 | Documentation: CC-BY-4.0

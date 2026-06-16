@@ -18,6 +18,8 @@ harnesses-ref validate ./my-harness
 This checks:
 - `HARNESS.md` exists and has required frontmatter (`name`, `description`)
 - All items in `skills/` are valid Agent Skills (contain `SKILL.md` with required frontmatter)
+- All skill grouping subdirectories contain a `SKILLS.md` summary file
+- All reference grouping subdirectories contain a `REFERENCES.md` summary file
 - Markdown files in `references/` are recommended to have a `description` in their frontmatter
 
 Fix any structural errors before proceeding to behavioral testing.
