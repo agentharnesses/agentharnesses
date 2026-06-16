@@ -67,8 +67,8 @@ def validate(harness_path: Path) -> list[str]:
             errors.append(f"{skill.path / 'SKILL.md'}: 'description' is required in frontmatter")
 
     for ref in harness.references:
-        if not ref.description:
-            errors.append(f"{ref.path}: 'description' is recommended in frontmatter")
+        if ref.path.suffix == ".md" and not ref.description:
+            errors.append(f"{ref.path}: markdown reference files are recommended to have a 'description' in frontmatter")
 
     _check_skill_subdirs(harness_path / "skills", errors)
     _check_reference_subdirs(harness_path / "references", errors)

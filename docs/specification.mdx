@@ -96,18 +96,33 @@ skills/
     └── assets/           # Optional: templates, resources
 ```
 
-Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate:
+Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate. Each grouping subdirectory should include a `SKILLS.md` file that summarizes its contents:
 
 ```
 skills/
 ├── content-creation/
+│   ├── SKILLS.md         # Required for grouping dirs: index of skills within
 │   ├── create-blog-post/
 │   └── generate-images/
 └── research/
+    ├── SKILLS.md
     └── scan-social/
 ```
 
-When subdirectories are used, the grouping structure should be reflected in `HARNESS.md` so the agent understands the organization without having to traverse the filesystem.
+### SKILLS.md
+
+`SKILLS.md` uses the same frontmatter-plus-body format as `HARNESS.md`. The `description` field summarizes the group. The body lists each skill with a one-line description:
+
+```markdown
+---
+description: Skills for creating written and visual content.
+---
+
+- `create-blog-post` — draft and edit long-form blog articles
+- `generate-images` — produce image prompts and review generated visuals
+```
+
+With `SKILLS.md` in place, `HARNESS.md` can reference the group summary rather than listing every skill individually, keeping the entry point short as the harness grows. Grouping subdirectories may be nested arbitrarily; each level gets its own `SKILLS.md`.
 
 ---
 
@@ -123,7 +138,7 @@ Typical reference content:
 
 ### Reference File Format
 
-Each reference file should include frontmatter with a `description` field so agents can evaluate relevance before reading the full document:
+Reference files may be any file type. Markdown is the recommended format — it is human-readable, broadly supported, and allows a `description` frontmatter field that agents can use to evaluate relevance during the Activation phase without reading the full file:
 
 ```markdown
 ---
@@ -133,23 +148,36 @@ description: <one-line summary of what this document covers>
 <body>
 ```
 
-The `description` is used during the Activation phase (see [Loading Model](#loading-model)) to decide whether a reference is relevant to the current task.
-
 ### Organization
 
-Like the skills directory, references may be organized into subdirectories:
+Like the skills directory, references may be organized into subdirectories. Each grouping subdirectory should include a `REFERENCES.md` file that summarizes its contents:
 
 ```
 references/
 ├── brand/
+│   ├── REFERENCES.md     # Required for grouping dirs: index of references within
 │   ├── style-guide.md
 │   └── voice-guidelines.md
 └── infrastructure/
+    ├── REFERENCES.md
     ├── database-overview.md
     └── api-inventory.md
 ```
 
-Subdirectory structure should be reflected in `HARNESS.md`.
+### REFERENCES.md
+
+`REFERENCES.md` follows the same format as individual reference files — frontmatter with a `description` field, and a body listing each document with a one-line summary:
+
+```markdown
+---
+description: Brand guidelines governing tone, typography, and visual style.
+---
+
+- `style-guide.md` — typography, tone, and formatting rules for all content
+- `voice-guidelines.md` — brand voice principles and examples
+```
+
+`HARNESS.md` can then point to the group summary instead of each file individually. Grouping subdirectories may be nested arbitrarily; each level gets its own `REFERENCES.md`.
 
 ---
 

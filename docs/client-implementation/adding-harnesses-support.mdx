@@ -39,7 +39,7 @@ When a session begins with a harness, inject into the agent's context:
 
 1. The full body of `HARNESS.md`
 2. The `name` and `description` of every skill in `skills/` (read from each `SKILL.md` frontmatter)
-3. The `description` of every reference in `references/` (read from each file's frontmatter)
+3. The `description` of every reference in `references/` that has frontmatter, if present
 
 Do **not** inject full skill bodies or full reference content at this stage. The agent uses the descriptions to decide what to load next.
 
