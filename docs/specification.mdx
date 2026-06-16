@@ -167,20 +167,6 @@ This model allows a harness to contain dozens of skills and references without c
 
 ---
 
-## Multi-Agent Model
-
-When a system requires multiple distinct roles, use multiple agents — each with its own harness.
-
-| Rule | Rationale |
-|---|---|
-| Each agent has exactly one role | Roles should be scoped like job descriptions: coherent and bounded |
-| Each agent has exactly one harness | The harness defines and constrains the role |
-| Multiple roles → multiple agents | Don't put unrelated capabilities in one harness |
-| Skills and references may be shared across harnesses | Shared assets keep multiple agents aligned |
-| Skills should be atomic | One responsibility per skill; compose at the harness level |
-
----
-
 ## Versioning
 
 Harnesses do not define a required versioning scheme. It is recommended to version harnesses using standard version control (git) and to pin skill dependencies by directory rather than by registry reference.
