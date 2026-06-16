@@ -24,6 +24,7 @@
         "pages": [
           "harness-creation/quickstart",
           "harness-creation/best-practices",
+          "harness-creation/organizing-large-harnesses",
           "harness-creation/optimizing-descriptions",
           "harness-creation/evaluating-harnesses",
           "harness-creation/using-scripts"

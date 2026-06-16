@@ -24,21 +24,19 @@ skills/
 └── email-stakeholders/
 ```
 
-Atomic skills are easier to test, easier to reuse across harnesses, and easier to update independently.
+Atomic skills are easier to test, easier to reuse across harnesses, and easier to update independently. While broad skills can be employed within a harness, smaller and more atomic skills are encouraged.
 
 ---
 
 ## Put cross-skill knowledge in references, not in skills
 
-If a piece of information — a style guide, an API overview, a brand voice document — applies to more than one skill, it belongs in `references/`, not inside any individual skill.
-
-Duplicating it across skills creates maintenance problems: when the style guide changes, you have to update it in multiple places.
+If a piece of information applies to more than one skill, it belongs in `references/`, not inside any individual skill. This allows for more efficient maintainability and consistency across skills.
 
 ---
 
 ## Keep HARNESS.md as short as possible
 
-`HARNESS.md` is loaded into the agent's context window on every activation. Every line costs tokens. Write the minimum body that lets the agent understand the harness structure and navigate to the right skill or reference.
+`HARNESS.md` is loaded into the agent's context window on every activation. Write the minimum body that lets the agent understand the harness structure and navigate to the right skill or reference.
 
 A good body:
 - One short paragraph describing the agent's role
@@ -47,53 +45,13 @@ A good body:
 
 A bad body:
 - Repeats information already in skill or reference files
-- Explains how skills work in general (the agent knows this)
+- Explains how skills work
 - Contains lengthy prose that could live in a reference file
 
 ---
 
 ## Use subdirectories for large harnesses
 
-When a harness grows beyond ~8–10 skills or references, organize them into named subdirectories. Reflect that structure in `HARNESS.md` so the agent doesn't have to traverse the filesystem to understand what's available.
+When a harness grows large, group related skills and references into named subdirectories. Add a `SKILLS.md` to each skill subdirectory and a `REFERENCES.md` to each reference subdirectory so `HARNESS.md` can stay short. This structure can be nested arbitrarily.
 
-```
-skills/
-├── data-access/
-│   ├── query-database/
-│   └── read-spreadsheet/
-└── reporting/
-    ├── generate-chart/
-    └── write-summary/
-```
-
----
-
-## Share skills and references, don't copy them
-
-When multiple agents need the same skill (e.g., `query-database`), maintain one copy and reference it from multiple harnesses. Copying creates drift.
-
-A common pattern is a shared library directory alongside your harnesses:
-
-```
-project/
-├── shared-skills/
-│   └── query-database/
-├── analyst-harness/
-│   ├── HARNESS.md
-│   └── skills/ -> symlink or copy of query-database
-└── reporter-harness/
-    ├── HARNESS.md
-    └── skills/ -> symlink or copy of query-database
-```
-
----
-
-## Write descriptions first
-
-Before writing the body of any `HARNESS.md`, `SKILL.md`, or reference file, write the `description` field. If you can't describe the thing in one sentence, the scope is too broad.
-
----
-
-## Version your harness with git
-
-Harnesses are plain files. Put them in version control. Tag releases. This lets you roll back when a change to `HARNESS.md` or a skill breaks agent behavior.
+See [Organizing Large Harnesses](/harness-creation/organizing-large-harnesses) for the full pattern.

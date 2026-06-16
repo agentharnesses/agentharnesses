@@ -1,0 +1,110 @@
+---
+title: Organizing Large Harnesses
+description: How to use subdirectories, SKILLS.md, and REFERENCES.md to manage harnesses with many skills and references.
+---
+
+# Organizing Large Harnesses
+
+As a harness grows, listing every skill and reference directly in `HARNESS.md` becomes unwieldy. Subdirectories let you group related skills and references together, keeping `HARNESS.md` short while still giving the agent a clear map of what's available.
+
+## Subdirectory Structure
+
+Organize `skills/` and `references/` into named subdirectories by theme:
+
+```
+my-harness/
+├── HARNESS.md
+├── skills/
+│   ├── data-access/
+│   │   ├── SKILLS.md
+│   │   ├── query-database/
+│   │   └── read-spreadsheet/
+│   └── reporting/
+│       ├── SKILLS.md
+│       ├── generate-chart/
+│       └── write-summary/
+└── references/
+    ├── data-sources/
+    │   ├── REFERENCES.md
+    │   ├── schema-overview.md
+    │   ├── table-relationships.md
+    │   ├── field-definitions.md
+    │   └── known-data-quirks.md
+    └── report-standards/
+        ├── REFERENCES.md
+        ├── formatting-guide.md
+        ├── chart-types.md
+        ├── color-palette.md
+        └── stakeholder-glossary.md
+```
+
+## SKILLS.md and REFERENCES.md
+
+Each subdirectory should contain a summary file — `SKILLS.md` for skill directories, `REFERENCES.md` for reference directories. These files describe the contents of the subdirectory in one line per item, allowing `HARNESS.md` to point to the summary rather than listing every individual file.
+
+**`skills/data-access/SKILLS.md`**
+```markdown
+---
+description: Skills for retrieving data from databases and files.
+---
+
+- `query-database` — run a read-only SQL query against the product database
+- `read-spreadsheet` — read rows and columns from a CSV or Excel file
+```
+
+**`references/data-sources/REFERENCES.md`**
+```markdown
+---
+description: Reference material about the structure and contents of available data sources.
+---
+
+- `schema-overview.md` — high-level diagram and description of the database schema
+- `table-relationships.md` — foreign key relationships between tables
+- `field-definitions.md` — detailed field-level documentation
+- `known-data-quirks.md` — known data quality issues and workarounds
+```
+
+With this in place, `HARNESS.md` stays short:
+
+```markdown
+**Skills**
+- `skills/data-access/` — skills for retrieving data (see `SKILLS.md`)
+- `skills/reporting/` — skills for presenting findings (see `SKILLS.md`)
+
+**References**
+- `references/data-sources/` — data structure and quality notes (see `REFERENCES.md`)
+- `references/report-standards/` — formatting and chart conventions (see `REFERENCES.md`)
+```
+
+## Nesting
+
+This structure can be nested arbitrarily. Each level of subdirectory gets its own `SKILLS.md` or `REFERENCES.md`, allowing the agent to incrementally traverse the hierarchy rather than loading everything at once.
+
+```
+my-harness/
+├── HARNESS.md
+├── skills/
+│   └── data-access/
+│       ├── SKILLS.md
+│       ├── databases/
+│       │   ├── SKILLS.md
+│       │   └── query-postgres/
+│       └── files/
+│           ├── SKILLS.md
+│           └── read-csv/
+└── references/
+    └── data-sources/
+        ├── REFERENCES.md
+        ├── relational/
+        │   ├── REFERENCES.md
+        │   └── schema-overview.md
+        └── warehouse/
+            ├── REFERENCES.md
+            └── dataset-catalog.md
+```
+
+At each level, the agent reads only the summary file to understand what's available, then drills into subdirectories or individual files only when the task requires it. This is the same **progressive disclosure** model that governs the harness as a whole.
+
+## Example
+
+The [`data-analyst-assistant`](https://github.com/agentharnesses/agentharnesses/tree/main/examples/data-analyst-assistant) example demonstrates this pattern with three reference subdirectories and two skill subdirectories.
