@@ -6,7 +6,7 @@ import strictyaml
 from .errors import ParseError
 from .models import Harness, ReferenceDoc, SkillRef
 
-_FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n(.*)", re.DOTALL)
+_FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n?(.*)", re.DOTALL)
 
 
 def _split_frontmatter(text: str, path: str) -> tuple[dict, str]:
@@ -33,10 +33,14 @@ def _parse_skill(skill_dir: Path) -> SkillRef:
 
 
 def _parse_reference(ref_path: Path) -> ReferenceDoc:
-    fm, _ = _split_frontmatter(ref_path.read_text(), str(ref_path))
+    try:
+        fm, _ = _split_frontmatter(ref_path.read_text(), str(ref_path))
+        description = fm.get("description", "")
+    except ParseError:
+        description = ""
     return ReferenceDoc(
         filename=ref_path.name,
-        description=fm.get("description", ""),
+        description=description,
         path=ref_path,
     )
 
@@ -58,6 +62,8 @@ def parse(harness_path: Path) -> Harness:
     refs_dir = harness_path / "references"
     if refs_dir.exists():
         for ref in sorted(refs_dir.rglob("*.md")):
+            if ref.name == "REFERENCES.md":
+                continue
             references.append(_parse_reference(ref))
 
     return Harness(

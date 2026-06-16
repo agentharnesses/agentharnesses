@@ -9,7 +9,7 @@ Agent Harnesses provide a lightweight, open format for defining the complete con
 
 ## What is a Harness?
 
-A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup an agent loads the harness name and description. As tasks arrive, it pulls in only the skills and references each task requires. This allows for **progressive disclosure**, similarly to what is defined in the Agent Skills specification, to be applied at the harness level.
+A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup the full `HARNESS.md` is loaded, establishing the agent's role. As tasks arrive, the agent pulls in only the skills and references each task requires. This allows for **progressive disclosure**, similarly to what is defined in the Agent Skills specification, to be applied at the harness level.
 
 ```
 my-harness/

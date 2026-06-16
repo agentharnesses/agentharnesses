@@ -10,19 +10,19 @@ from harnesses_ref.parser import parse
 def make_harness(tmp_path: Path, harness_md: str, skills: dict = None, refs: dict = None) -> Path:
     harness_dir = tmp_path / "harness"
     harness_dir.mkdir()
-    (harness_dir / "HARNESS.md").write_text(textwrap.dedent(harness_md))
+    (harness_dir / "HARNESS.md").write_text(textwrap.dedent(harness_md).strip())
 
     if skills:
         for skill_name, skill_md in skills.items():
             skill_dir = harness_dir / "skills" / skill_name
             skill_dir.mkdir(parents=True)
-            (skill_dir / "SKILL.md").write_text(textwrap.dedent(skill_md))
+            (skill_dir / "SKILL.md").write_text(textwrap.dedent(skill_md).strip())
 
     if refs:
         refs_dir = harness_dir / "references"
         refs_dir.mkdir()
         for filename, content in refs.items():
-            (refs_dir / filename).write_text(textwrap.dedent(content))
+            (refs_dir / filename).write_text(textwrap.dedent(content).strip())
 
     return harness_dir
 

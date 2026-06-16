@@ -138,7 +138,7 @@ Typical reference content:
 
 ### Reference File Format
 
-Reference files may be any file type. Markdown is the recommended format — it is human-readable, broadly supported, and allows a `description` frontmatter field that agents can use to evaluate relevance during the Activation phase without reading the full file:
+Reference files may be any file type. Markdown is the recommended format — it is human-readable, broadly supported, and allows a `description` frontmatter field that agents can use to evaluate relevance during the Discovery phase without reading the full file:
 
 ```markdown
 ---
@@ -185,13 +185,14 @@ description: Brand guidelines governing tone, typography, and visual style.
 
 Harnesses use **progressive disclosure** — agents load only what each task requires.
 
-| Phase | Trigger | What the agent loads |
+| Phase | Trigger | Interaction with the harness |
 |---|---|---|
-| **Discovery** | Session start | `name` and `description` from `HARNESS.md` frontmatter only |
-| **Activation** | Task received | Full `HARNESS.md` body; skill and reference descriptions |
-| **Execution** | Task in progress | Full content of relevant skills and references, on demand |
+| **Load** | Session start | Full `HARNESS.md` body is injected into context, establishing the agent's role and constraints |
+| **Discovery** | Task received | Agent reads `SKILLS.md` / `REFERENCES.md` group summaries to find relevant capabilities |
+| **Activation** | Description aligns with task | Agent reads the full content of a relevant skill or reference |
+| **Execution** | Action required | Agent runs a script bundled within a skill |
 
-This model allows a harness to contain dozens of skills and references without consuming the full context window on every interaction.
+`HARNESS.md` is the agent's map of the harness. From there the agent navigates progressively — reading group summaries to understand what is available, then loading individual skills and references only when a task requires them. This model allows a harness to contain dozens of skills and references without consuming the full context window on every interaction.
 
 ---
 

@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from .errors import ValidationError
 from .parser import parse, ParseError
 
 

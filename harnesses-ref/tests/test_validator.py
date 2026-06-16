@@ -7,7 +7,7 @@ from harnesses_ref.validator import validate
 def make_harness(tmp_path: Path, harness_md: str) -> Path:
     d = tmp_path / "harness"
     d.mkdir()
-    (d / "HARNESS.md").write_text(textwrap.dedent(harness_md))
+    (d / "HARNESS.md").write_text(textwrap.dedent(harness_md).strip())
     return d
 
 
@@ -47,3 +47,38 @@ def test_missing_harness_md(tmp_path):
     d.mkdir()
     errors = validate(d)
     assert any("HARNESS.md" in e for e in errors)
+
+
+def test_skill_grouping_dir_missing_skills_md(tmp_path):
+    d = make_harness(tmp_path, """
+        ---
+        name: Test
+        description: A valid harness.
+        ---
+        Body.
+    """)
+    group = d / "skills" / "data-access"
+    group.mkdir(parents=True)
+    (group / "query-database").mkdir()
+    (group / "query-database" / "SKILL.md").write_text(
+        "---\nname: Query\ndescription: Queries the db.\n---\nInstructions."
+    )
+    errors = validate(d)
+    assert any("SKILLS.md" in e for e in errors)
+
+
+def test_reference_grouping_dir_missing_references_md(tmp_path):
+    d = make_harness(tmp_path, """
+        ---
+        name: Test
+        description: A valid harness.
+        ---
+        Body.
+    """)
+    group = d / "references" / "data-sources"
+    group.mkdir(parents=True)
+    (group / "schema.md").write_text(
+        "---\ndescription: Schema overview.\n---\nContent."
+    )
+    errors = validate(d)
+    assert any("REFERENCES.md" in e for e in errors)

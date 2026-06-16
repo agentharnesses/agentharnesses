@@ -9,81 +9,82 @@ This guide is for developers building AI clients, IDEs, agent frameworks, or oth
 
 ## What clients must implement
 
-A compliant client must:
+A compliant client must support the four-phase loading model:
 
-1. **Discover** a harness by reading `HARNESS.md` frontmatter (`name` and `description`)
-2. **Activate** the harness when a session starts, loading the full `HARNESS.md` body and indexing skill and reference descriptions
-3. **Execute** individual skills and references on demand as tasks require
+1. **Load** — at session start, inject the full `HARNESS.md` body into the agent's context
+2. **Discovery** — expose tools so the agent can read skill and reference descriptions to find what is relevant to a task
+3. **Activation** — expose tools so the agent can read the full content of a skill or reference when its description matches the task
+4. **Execution** — expose tools so the agent can run scripts bundled within skills
 
-Clients may implement additional features (caching, skill search, UI affordances) but these three behaviors are the baseline.
+Clients may implement additional features (caching, skill search, UI affordances) but these four behaviors are the baseline.
 
 ---
 
 ## Loading model in detail
 
-### Phase 1 — Discovery
+### Load
 
-At session start, read only the frontmatter from `HARNESS.md`:
-
-```python
-harness = parse_frontmatter("HARNESS.md")
-print(harness.name)         # "Marketing Assistant"
-print(harness.description)  # "Helps create and review marketing content..."
-```
-
-Use `name` and `description` to present the harness to the user or to route sessions to the correct harness when multiple are installed.
-
-### Phase 2 — Activation
-
-When a session begins with a harness, inject into the agent's context:
-
-1. The full body of `HARNESS.md`
-2. The `name` and `description` of every skill in `skills/` (read from each `SKILL.md` frontmatter)
-3. The `description` of every reference in `references/` that has frontmatter, if present
-
-Do **not** inject full skill bodies or full reference content at this stage. The agent uses the descriptions to decide what to load next.
+At session start, read `HARNESS.md` frontmatter to get `name` and `description` for routing or presenting the harness to the user, then inject the full body into the agent's context:
 
 ```python
-context = []
-context.append(read_full("HARNESS.md"))
-
-for skill in list_skills("skills/"):
-    context.append(f"Skill: {skill.name} — {skill.description}")
-
-for ref in list_references("references/"):
-    context.append(f"Reference: {ref.filename} — {ref.description}")
-
-inject_into_context(context)
+harness = parse_frontmatter_and_body("HARNESS.md")
+present_to_user(harness.name, harness.description)
+inject_into_context(harness.body)
 ```
 
-### Phase 3 — Execution
+`HARNESS.md` is the agent's map of the harness — it establishes the agent's role and tells it what skills and references are available.
 
-When the agent determines it needs a skill or reference, your client should:
+### Discovery
 
-1. Receive a tool call or structured request from the agent naming the skill or reference
-2. Read the full content of the requested file
-3. Inject it into context or return it as a tool result
+When a task arrives, the agent reads skill and reference descriptions to decide what is relevant. Expose a tool so the agent can request descriptions on demand rather than having the client inject everything upfront.
 
-Expose two tools to the agent:
+### Activation
+
+When the agent determines a skill or reference is relevant, your client reads the requested content and returns it. Expose these tools to the agent:
 
 ```
-load_skill(name: str) -> str
-    Returns the full content of skills/<name>/SKILL.md and lists any available scripts.
+load_skill(path: str) -> str
+    If path points to a grouping directory, returns its SKILLS.md.
+    If path points to a leaf skill directory, returns its SKILL.md and lists available scripts.
 
-load_reference(filename: str) -> str
-    Returns the full content of references/<filename>.
+load_reference(path: str) -> str
+    If path points to a grouping directory, returns its REFERENCES.md.
+    If path points to a file, returns the full file content.
 ```
+
+Using paths rather than names keeps the interface uniform across flat and grouped harnesses and handles arbitrary nesting without client changes.
 
 ---
 
 ## Handling subdirectories
 
-Skills and references may be organized into subdirectories. When indexing at activation time, traverse recursively and index every `SKILL.md` and every markdown reference file found at any depth. Preserve the relative path so the agent can identify items unambiguously:
+Skills and references may be organized into named grouping subdirectories. Each grouping directory contains a `SKILLS.md` or `REFERENCES.md` summary file that describes its contents.
 
 ```
-skills/content-creation/create-blog-post/SKILL.md  →  name: "create-blog-post"
-skills/research/scan-social/SKILL.md               →  name: "scan-social"
+skills/
+├── data-access/
+│   ├── SKILLS.md          ← summary for this group
+│   ├── query-database/
+│   │   └── SKILL.md
+│   └── read-spreadsheet/
+│       └── SKILL.md
+└── reporting/
+    ├── SKILLS.md
+    └── generate-report/
+        └── SKILL.md
 ```
+
+The agent navigates this hierarchy progressively: it reads `HARNESS.md` to learn about groups, loads a `SKILLS.md` to learn what is in a group, then loads individual `SKILL.md` files only when a task requires them. Your client's `load_skill` tool handles all three levels via the same path-based interface.
+
+The same pattern applies to `references/` with `REFERENCES.md`. Groups may be nested arbitrarily; each level gets its own summary file.
+
+---
+
+## Reference file types
+
+References may be any file type — markdown, images, code, data files, or anything else. Your `load_reference` tool should return the raw file content and let the agent handle interpretation.
+
+When indexing references for presentation or search, only markdown files (`.md`) may carry a `description` frontmatter field. Non-markdown files have no structured metadata.
 
 ---
 
@@ -108,7 +109,7 @@ pip install harnesses-ref
 harnesses-ref validate ./my-harness
 ```
 
-Clients may run this check at install time and surface validation errors to the user.
+The validator checks structural correctness including `HARNESS.md` frontmatter, skill validity, and the presence of `SKILLS.md`/`REFERENCES.md` in grouping subdirectories. Clients may run this check at install time and surface errors to the user.
 
 ---
 
@@ -118,7 +119,6 @@ A minimal Python implementation of harness loading:
 
 ```python
 from pathlib import Path
-import yaml
 
 def load_harness(harness_path: Path) -> dict:
     harness_md = (harness_path / "HARNESS.md").read_text()
@@ -127,14 +127,25 @@ def load_harness(harness_path: Path) -> dict:
     skills = []
     for skill_md in harness_path.glob("skills/**/SKILL.md"):
         fm, _ = parse_frontmatter_and_body(skill_md.read_text())
-        skills.append({"name": fm["name"], "description": fm["description"],
-                       "path": skill_md.parent})
+        skills.append({
+            "name": fm["name"],
+            "description": fm["description"],
+            "path": skill_md.parent,
+        })
 
     references = []
-    for ref in harness_path.glob("references/**/*.md"):
-        fm, _ = parse_frontmatter_and_body(ref.read_text())
-        references.append({"filename": ref.name, "description": fm.get("description", ""),
-                            "path": ref})
+    for ref in (harness_path / "references").rglob("*"):
+        if ref.is_dir() or ref.name in ("REFERENCES.md",):
+            continue  # skip grouping summaries; they are loaded on demand
+        description = ""
+        if ref.suffix == ".md":
+            fm, _ = parse_frontmatter_and_body(ref.read_text())
+            description = fm.get("description", "")
+        references.append({
+            "filename": ref.name,
+            "description": description,
+            "path": ref,
+        })
 
     return {
         "name": frontmatter["name"],
@@ -143,4 +154,21 @@ def load_harness(harness_path: Path) -> dict:
         "skills": skills,
         "references": references,
     }
+
+def load_skill(harness_path: Path, skill_path: str) -> str:
+    target = harness_path / "skills" / skill_path
+    if (target / "SKILLS.md").exists():
+        return (target / "SKILLS.md").read_text()
+    skill_md = target / "SKILL.md"
+    scripts = list(target.glob("scripts/*"))
+    result = skill_md.read_text()
+    if scripts:
+        result += "\n\nAvailable scripts: " + ", ".join(s.name for s in scripts)
+    return result
+
+def load_reference(harness_path: Path, ref_path: str) -> str:
+    target = harness_path / "references" / ref_path
+    if target.is_dir() and (target / "REFERENCES.md").exists():
+        return (target / "REFERENCES.md").read_text()
+    return target.read_bytes().decode(errors="replace")
 ```
