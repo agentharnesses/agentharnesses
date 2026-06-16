@@ -28,9 +28,11 @@ Atomic skills are easier to test, easier to reuse across harnesses, and easier t
 
 ---
 
-## Put cross-skill knowledge in references, not in skills
+## Put cross-skill knowledge in the harness references, not in individual skills
 
-If a piece of information applies to more than one skill, it belongs in `references/`, not inside any individual skill. This allows for more efficient maintainability and consistency across skills.
+Individual skills may have their own `references/` directory for knowledge specific to that skill. The harness also has a top-level `references/` directory for knowledge that applies across multiple skills.
+
+If a piece of information is relevant to more than one skill, it belongs in the harness-level `references/`, not inside any individual skill. This avoids duplication and keeps cross-cutting knowledge in one place.
 
 ---
 
