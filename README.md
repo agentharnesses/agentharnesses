@@ -1,17 +1,19 @@
 # Agent Harnesses
 
-A standardized way to give AI agents roles, environments, and capabilities.
+A standardized format for giving AI agents a defined role, skills, and reference material.
 
 ## What is an Agent Harness?
 
-A harness is a portable folder that gives an AI agent everything it needs to fulfill a role: an identity (`HARNESS.md`), a set of skills, and cross-cutting reference material. Agents load harnesses at startup and use progressive disclosure to pull in only what each task requires.
+A harness is a folder that gives an AI agent everything it needs to fulfill a role. As tasks arrive, the agent is able to pull skills and references relevent to that task.
 
 ```
 my-harness/
-├── HARNESS.md        # Required: metadata + instructions
+├── HARNESS.md        # Required: identity + overview
 ├── skills/           # Optional: Agent Skills (one per subdirectory)
 └── references/       # Optional: cross-skill reference documents
 ```
+
+For larger harnesses, skills and references can be organized into named subdirectories. Each grouping subdirectory includes a `SKILLS.md` or `REFERENCES.md` summary file so the agent can navigate the structure more efficiently.
 
 ## Relationship to Agent Skills
 
@@ -19,24 +21,25 @@ Harnesses build on the [Agent Skills](https://github.com/agentskills/agentskills
 
 ## Documentation
 
-See [agentharnesses.dev](https://agentharnesses.dev) for the full specification and guides.
+See [agentharnesses.io](https://agentharnesses.io) for the full specification and guides.
 
-## Reference Library
+## Reference Implementation
 
 The [`harnesses-ref`](./harnesses-ref) directory contains a Python reference implementation and CLI for validating, reading, and rendering harnesses.
 
 ```bash
 pip install harnesses-ref
 harnesses-ref validate ./my-harness
+harnesses-ref prompt ./my-harness
 ```
 
 ## Examples
 
-The [`examples/`](./examples) directory contains three fully worked harnesses:
+The [`examples/`](./examples) directory contains three example harnesses:
 
 | Example | Description |
 |---|---|
-| [`data-analyst-assistant`](./examples/data-analyst-assistant) | Queries databases, reads spreadsheets, and generates reports |
+| [`data-analyst-assistant`](./examples/data-analyst-assistant) | Queries databases, reads spreadsheets, and generates reports — demonstrates the subdirectory pattern |
 | [`software-development-assistant`](./examples/software-development-assistant) | Reads code, makes edits, and runs tests in a codebase |
 | [`writing-publishing-assistant`](./examples/writing-publishing-assistant) | Searches existing posts, finds reusable images, and drafts new content |
 
