@@ -105,7 +105,7 @@ Clients should sandbox script execution appropriately for their environment and 
 Use the `harnesses-ref` CLI to validate a harness before loading it:
 
 ```bash
-pip install harnesses-ref
+pip install "git+https://github.com/agentharnesses/agentharnesses.git#subdirectory=harnesses-ref"
 harnesses-ref validate ./my-harness
 ```
 

@@ -28,7 +28,7 @@ See [agentharnesses.io](https://agentharnesses.io) for the full specification an
 The [`harnesses-ref`](./harnesses-ref) directory contains a Python reference implementation and CLI for validating, reading, and rendering harnesses.
 
 ```bash
-pip install harnesses-ref
+pip install "git+https://github.com/agentharnesses/agentharnesses.git#subdirectory=harnesses-ref"
 harnesses-ref validate ./my-harness
 harnesses-ref prompt ./my-harness
 ```

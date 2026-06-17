@@ -5,7 +5,7 @@ A reference library for Agent Harnesses.
 ## Installation
 
 ```bash
-pip install harnesses-ref
+pip install "git+https://github.com/agentharnesses/agentharnesses.git#subdirectory=harnesses-ref"
 ```
 
 ## Usage
