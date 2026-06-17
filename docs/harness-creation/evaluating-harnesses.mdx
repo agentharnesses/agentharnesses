@@ -18,11 +18,13 @@ harnesses-ref validate ./my-harness
 This checks:
 - `HARNESS.md` exists and has required frontmatter (`name`, `description`)
 - All items in `skills/` are valid Agent Skills (contain `SKILL.md` with required frontmatter)
-- All skill grouping subdirectories contain a `SKILLS.md` summary file
-- All reference grouping subdirectories contain a `REFERENCES.md` summary file
 - Markdown files in `references/` are recommended to have a `description` in their frontmatter
 
-Fix any structural errors before proceeding to behavioral testing.
+It also emits warnings (non-fatal) for:
+- Skill grouping subdirectories missing a `SKILLS.md` summary file
+- Reference grouping subdirectories missing a `REFERENCES.md` summary file
+
+Fix any structural errors before proceeding to behavioral testing. Warnings do not block validation but are worth addressing for larger harnesses where routing quality matters.
 
 ---
 

@@ -48,13 +48,20 @@ my-harness/
 
 ## SKILLS.md and REFERENCES.md
 
-Each subdirectory should contain a summary file — `SKILLS.md` for skill directories, `REFERENCES.md` for reference directories. These files describe the contents of the subdirectory in one line per item, allowing `HARNESS.md` to point to the summary rather than listing every individual file.
+Adding a summary file to each subdirectory is optional but strongly encouraged. The primary purpose of these files is routing: an agent reading a summary should be able to decide quickly whether the group is relevant to the current task, without opening individual files.
+
+`SKILLS.md` is valuable when a group is large or varied enough that the individual skill descriptions alone don't paint a clear picture. `REFERENCES.md` is especially valuable because references vary widely in file type and may not carry a machine-readable `description` field — without a summary, the agent has little to go on besides filenames.
+
+The body is free-form markdown. A brief narrative works well, optionally followed by a list for larger groups:
 
 **`skills/data-access/SKILLS.md`**
 ```markdown
 ---
 description: Skills for retrieving data from databases and files.
 ---
+
+Use this group when the task requires reading from the product database or
+from uploaded spreadsheets.
 
 - `query-database` — run a read-only SQL query against the product database
 - `read-spreadsheet` — read rows and columns from a CSV or Excel file
@@ -65,6 +72,10 @@ description: Skills for retrieving data from databases and files.
 ---
 description: Reference material about the structure and contents of available data sources.
 ---
+
+Consult this group before writing any queries or interpreting query results.
+It covers the schema, table relationships, field definitions, and known data
+quality issues.
 
 - `schema-overview.md` — high-level diagram and description of the database schema
 - `table-relationships.md` — foreign key relationships between tables

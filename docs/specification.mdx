@@ -96,12 +96,12 @@ skills/
     └── assets/           # Optional: templates, resources
 ```
 
-Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate. Each grouping subdirectory should include a `SKILLS.md` file that summarizes its contents:
+Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate. Each grouping subdirectory may include a `SKILLS.md` file that summarizes its contents — this is optional but strongly encouraged:
 
 ```
 skills/
 ├── content-creation/
-│   ├── SKILLS.md         # Required for grouping dirs: index of skills within
+│   ├── SKILLS.md         # Optional but recommended: index of skills within
 │   ├── create-blog-post/
 │   └── generate-images/
 └── research/
@@ -111,12 +111,18 @@ skills/
 
 ### SKILLS.md
 
-`SKILLS.md` uses the same frontmatter-plus-body format as `HARNESS.md`. The `description` field summarizes the group. The body lists each skill with a one-line description:
+The primary purpose of `SKILLS.md` is to support routing: an agent reading it should be able to decide quickly whether any skill in this group is relevant to the current task, without opening individual skill files. For small groups this file may be unnecessary — the skill `description` fields alone are often sufficient. For larger or more varied groups, a well-written `SKILLS.md` is the difference between efficient discovery and loading every skill to find the right one.
+
+`SKILLS.md` uses the same frontmatter-plus-body format as `HARNESS.md`. The `description` field gives a one-line characterization of the group as a whole. The body is free-form markdown — a brief narrative, a list, or a combination — written to answer "should I look here?" rather than to enumerate contents exhaustively:
 
 ```markdown
 ---
 description: Skills for creating written and visual content.
 ---
+
+These skills cover the full content production pipeline, from drafting long-form
+articles to generating and reviewing images. Use this group when the task involves
+producing any kind of publishable asset.
 
 - `create-blog-post` — draft and edit long-form blog articles
 - `generate-images` — produce image prompts and review generated visuals
@@ -150,12 +156,12 @@ description: <one-line summary of what this document covers>
 
 ### Organization
 
-Like the skills directory, references may be organized into subdirectories. Each grouping subdirectory should include a `REFERENCES.md` file that summarizes its contents:
+Like the skills directory, references may be organized into subdirectories. Each grouping subdirectory may include a `REFERENCES.md` file that summarizes its contents — this is optional but strongly encouraged:
 
 ```
 references/
 ├── brand/
-│   ├── REFERENCES.md     # Required for grouping dirs: index of references within
+│   ├── REFERENCES.md     # Optional but recommended: index of references within
 │   ├── style-guide.md
 │   └── voice-guidelines.md
 └── infrastructure/
@@ -166,12 +172,18 @@ references/
 
 ### REFERENCES.md
 
-`REFERENCES.md` follows the same format as individual reference files — frontmatter with a `description` field, and a body listing each document with a one-line summary:
+The primary purpose of `REFERENCES.md` is to support routing: an agent reading it should be able to decide quickly whether any document in this group is relevant to the current task. This is particularly important for references because they vary widely in file type and may not carry a machine-readable `description` field — without a summary file, the agent has little to go on besides filenames.
+
+`REFERENCES.md` follows the same frontmatter-plus-body format as individual reference files. The `description` field characterizes the group as a whole. The body is free-form markdown written to answer "should I look here?":
 
 ```markdown
 ---
 description: Brand guidelines governing tone, typography, and visual style.
 ---
+
+These documents define how all published content should look and sound. Consult
+this group whenever the task involves producing or reviewing content that will
+be seen externally.
 
 - `style-guide.md` — typography, tone, and formatting rules for all content
 - `voice-guidelines.md` — brand voice principles and examples
