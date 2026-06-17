@@ -4,7 +4,7 @@ An example harness for an agent that answers data questions by querying database
 
 ## What this harness does
 
-This harness gives an agent the ability to retrieve company data from multiple sources, interpret it, and present findings in a format appropriate for the audience. It is structured with grouped subdirectories to demonstrate the `SKILLS.md` and `REFERENCES.md` pattern for organizing larger harnesses.
+This harness gives an agent the ability to retrieve company data from multiple sources, interpret it, and present findings in a format appropriate for the audience. It is structured with grouped subdirectories and uses the optional `SKILLS.md` / `REFERENCES.md` summary files to demonstrate progressive disclosure for larger harnesses.
 
 ## Structure
 
@@ -54,4 +54,4 @@ data-analyst-assistant/
 
 ## What makes this example notable
 
-This harness uses grouped subdirectories for both skills and references, with `SKILLS.md` and `REFERENCES.md` summary files at each level. This keeps `HARNESS.md` short while still giving the agent a complete map of what is available.
+This harness uses grouped subdirectories for both skills and references, with optional `SKILLS.md` and `REFERENCES.md` summary files at each level. These summary files are not required but are strongly encouraged — they keep `HARNESS.md` short while still giving the agent a complete map of what is available without loading every file upfront.

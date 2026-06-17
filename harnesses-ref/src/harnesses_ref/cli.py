@@ -4,7 +4,7 @@ import click
 
 from .parser import parse, ParseError
 from .prompt import to_prompt_xml
-from .validator import validate
+from .validator import validate, warnings as get_warnings
 
 
 @click.group()
@@ -18,6 +18,9 @@ def main():
 def validate_cmd(path: Path):
     """Validate a harness directory structure."""
     errors = validate(path)
+    warns = get_warnings(path)
+    for warning in warns:
+        click.echo(f"⚠ {warning}", err=True)
     if not errors:
         click.echo(f"✓ {path} is valid")
     else:

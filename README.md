@@ -13,7 +13,7 @@ my-harness/
 └── references/       # Optional: cross-skill reference documents
 ```
 
-For larger harnesses, skills and references can be organized into named subdirectories. Each grouping subdirectory includes a `SKILLS.md` or `REFERENCES.md` summary file so the agent can navigate the structure more efficiently.
+For larger harnesses, skills and references can be organized into named subdirectories. Adding a `SKILLS.md` or `REFERENCES.md` summary file to each grouping subdirectory is optional but strongly encouraged — it lets the agent navigate the structure without loading every file upfront.
 
 ## Relationship to Agent Skills
 

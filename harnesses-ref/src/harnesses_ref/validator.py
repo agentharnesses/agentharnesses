@@ -3,8 +3,8 @@ from pathlib import Path
 from .parser import parse, ParseError
 
 
-def _check_skill_subdirs(parent: Path, errors: list[str]) -> None:
-    """Warn if any skill grouping directory is missing SKILLS.md.
+def _collect_skill_subdir_warnings(parent: Path, out: list[str]) -> None:
+    """Collect warnings for skill grouping directories missing SKILLS.md.
 
     Leaf skill dirs (those containing SKILL.md) are not grouping dirs and are skipped,
     along with any of their descendants (e.g. scripts/).
@@ -17,26 +17,26 @@ def _check_skill_subdirs(parent: Path, errors: list[str]) -> None:
         if (child / "SKILL.md").exists():
             continue  # leaf skill dir, not a grouping dir
         if not (child / "SKILLS.md").exists():
-            errors.append(
+            out.append(
                 f"{child}: skill grouping subdirectory is missing SKILLS.md — "
                 f"add one to summarize its contents"
             )
-        _check_skill_subdirs(child, errors)
+        _collect_skill_subdir_warnings(child, out)
 
 
-def _check_reference_subdirs(parent: Path, errors: list[str]) -> None:
-    """Warn if any reference grouping directory is missing REFERENCES.md."""
+def _collect_reference_subdir_warnings(parent: Path, out: list[str]) -> None:
+    """Collect warnings for reference grouping directories missing REFERENCES.md."""
     if not parent.exists():
         return
     for child in sorted(parent.iterdir()):
         if not child.is_dir():
             continue
         if not (child / "REFERENCES.md").exists():
-            errors.append(
+            out.append(
                 f"{child}: reference grouping subdirectory is missing REFERENCES.md — "
                 f"add one to summarize its contents"
             )
-        _check_reference_subdirs(child, errors)
+        _collect_reference_subdir_warnings(child, out)
 
 
 def validate(harness_path: Path) -> list[str]:
@@ -69,7 +69,23 @@ def validate(harness_path: Path) -> list[str]:
         if ref.path.suffix == ".md" and not ref.description:
             errors.append(f"{ref.path}: markdown reference files are recommended to have a 'description' in frontmatter")
 
-    _check_skill_subdirs(harness_path / "skills", errors)
-    _check_reference_subdirs(harness_path / "references", errors)
-
     return errors
+
+
+def warnings(harness_path: Path) -> list[str]:
+    """Return a list of advisory warnings. Warnings do not indicate an invalid harness.
+
+    Currently warns when skill or reference grouping subdirectories are missing their
+    respective SKILLS.md / REFERENCES.md summary files, which enable progressive
+    disclosure but are not required.
+    """
+    out: list[str] = []
+
+    harness_md = harness_path / "HARNESS.md"
+    if not harness_md.exists():
+        return out
+
+    _collect_skill_subdir_warnings(harness_path / "skills", out)
+    _collect_reference_subdir_warnings(harness_path / "references", out)
+
+    return out

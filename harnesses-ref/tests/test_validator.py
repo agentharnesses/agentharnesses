@@ -1,7 +1,7 @@
 import textwrap
 from pathlib import Path
 
-from harnesses_ref.validator import validate
+from harnesses_ref.validator import validate, warnings
 
 
 def make_harness(tmp_path: Path, harness_md: str) -> Path:
@@ -63,8 +63,9 @@ def test_skill_grouping_dir_missing_skills_md(tmp_path):
     (group / "query-database" / "SKILL.md").write_text(
         "---\nname: Query\ndescription: Queries the db.\n---\nInstructions."
     )
-    errors = validate(d)
-    assert any("SKILLS.md" in e for e in errors)
+    assert validate(d) == []
+    warns = warnings(d)
+    assert any("SKILLS.md" in w for w in warns)
 
 
 def test_reference_grouping_dir_missing_references_md(tmp_path):
@@ -80,5 +81,6 @@ def test_reference_grouping_dir_missing_references_md(tmp_path):
     (group / "schema.md").write_text(
         "---\ndescription: Schema overview.\n---\nContent."
     )
-    errors = validate(d)
-    assert any("REFERENCES.md" in e for e in errors)
+    assert validate(d) == []
+    warns = warnings(d)
+    assert any("REFERENCES.md" in w for w in warns)
