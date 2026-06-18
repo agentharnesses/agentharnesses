@@ -45,4 +45,4 @@ The [`examples/`](./examples) directory contains three example harnesses:
 
 ## License
 
-Code: Apache 2.0 | Documentation: CC-BY-4.0
+Code: Apache 2.0 | Documentation: CC-BY-4.0 
