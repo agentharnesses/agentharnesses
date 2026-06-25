@@ -19,6 +19,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
+raw-options = {root = ".."}
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/harnesses_ref"]
