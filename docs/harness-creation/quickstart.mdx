@@ -58,7 +58,16 @@ To summarize a document:
 5. Do not add information that isn't in the source text.
 ```
 
-Update `HARNESS.md` to reference the new skill:
+Create a `.leaf-detectors` file at the harness root so clients know to treat directories containing `SKILL.md` as skill leaves:
+
+```
+# .leaf-detectors
+skill=SKILL.md
+```
+
+Without this file, a compliant client will traverse into `skills/summarize/` as an ordinary directory rather than activating it as a skill.
+
+Update `HARNESS.md` to reference it:
 
 ```markdown
 ---
@@ -68,20 +77,30 @@ description: Helps draft, edit, and improve written content.
 
 You are a writing assistant. Help the user draft, revise, and polish written content.
 
-**Skills**
-- `summarize` — condense any text into a concise summary
+- `skills/summarize` — condense any text into a concise summary
 ```
 
-## Step 4 — Add a reference (optional)
+## Step 4 — Add a directory (optional)
 
-References provide cross-skill context. Add a style guide:
+You can add any top-level directory to bundle context relevant to your domain. The directory name is up to you. Create a routing file named after it in all-caps to help the agent navigate its contents:
 
 ```bash
-mkdir references
+mkdir context
 ```
 
 ```markdown
-# references/style-guide.md
+# context/CONTEXT.md
+---
+description: Style and tone guidelines that apply to all written output.
+---
+
+Consult this directory for rules that govern how the agent should write.
+
+- `style-guide.md` — tone, formatting, and sentence-length rules
+```
+
+```markdown
+# context/style-guide.md
 ---
 description: Tone and formatting rules that apply to all written output.
 ---
@@ -102,11 +121,8 @@ description: Helps draft, edit, and improve written content.
 
 You are a writing assistant. Help the user draft, revise, and polish written content.
 
-**Skills**
-- `summarize` — condense any text into a concise summary
-
-**References**
-- `style-guide.md` — tone and formatting rules for all output
+- `skills/summarize` — condense any text into a concise summary
+- `context/` — style and tone guidelines (see CONTEXT.md)
 ```
 
 ## Step 5 — Install the harness

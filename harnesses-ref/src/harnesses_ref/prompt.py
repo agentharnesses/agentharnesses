@@ -13,17 +13,16 @@ def to_prompt_xml(harness: Harness) -> str:
             lines.append(f"    {line}" if line else "")
         lines.append("  </overview>")
 
-    if harness.skills:
-        lines.append("  <skills>")
-        for skill in harness.skills:
+    for directory in harness.directories:
+        attrs = f'name="{directory.name}"'
+        if directory.description:
+            attrs += f' description="{directory.description}"'
+        lines.append(f"  <directory {attrs}>")
+        for skill in directory.skills:
             lines.append(f'    <skill name="{skill.name}">{skill.description}</skill>')
-        lines.append("  </skills>")
-
-    if harness.references:
-        lines.append("  <references>")
-        for ref in harness.references:
-            lines.append(f'    <reference filename="{ref.filename}">{ref.description}</reference>')
-        lines.append("  </references>")
+        for item in directory.content:
+            lines.append(f'    <file filename="{item.filename}">{item.description}</file>')
+        lines.append("  </directory>")
 
     lines.append("</harness>")
     return "\n".join(lines)

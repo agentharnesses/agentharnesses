@@ -5,30 +5,63 @@ description: A standardized way to give AI agents roles, context, and capabiliti
 
 # Agent Harnesses
 
-Agent Harnesses provide a lightweight, open format for defining the complete context an AI agent needs to fulfill a role. Harnesses do this by bundling skills and reference material into a single, portable, and defined structure.
+Agent Harnesses provide a lightweight, open format for defining the complete context an AI agent needs to fulfill a role. Harnesses do this by bundling capabilities and context into a single, portable, structured directory.
 
 ## What is a Harness?
 
-A harness is a folder containing a `HARNESS.md` file plus optional `skills/` and `references/` directories. At startup the full `HARNESS.md` is loaded, establishing the agent's role. As tasks arrive, the agent pulls in only the skills and references each task requires. This allows for **progressive disclosure**, similarly to what is defined in the Agent Skills specification, to be applied at the harness level.
+A harness is a folder containing a `HARNESS.md` file plus any number of top-level subdirectories the domain requires. At startup the full `HARNESS.md` is loaded, establishing the agent's role. As tasks arrive, the agent pulls in only the content each task requires — **progressive disclosure** applied at the harness level.
 
 ```
 my-harness/
 ├── HARNESS.md        # Required: identity + overview
-├── skills/           # Optional: Agent Skills bundles
-└── references/       # Optional: cross-skill documentation
+├── .leaf-detectors   # Optional: leaf boundary patterns
+├── tools/            # Example top-level directory — any name
+├── brand/            # Example top-level directory — any name
+└── data/             # Example top-level directory — any name, any purpose
 ```
+
+The subdirectory names are chosen by the harness author. `skills/` and `references/` are common conventions, but the spec places no constraints on what top-level directories exist or what they're called.
 
 ## How Harnesses Relate to Skills
 
-The [Agent Skills](https://github.com/agentskills/agentskills) standard defines how to package a single atomic capability; like "interact with a database" or "create brand assets". A harness bundles many of these skills together to define a **complete agent role**.
+The [Agent Skills](https://github.com/agentskills/agentskills) standard defines how to package a single atomic capability — like "interact with a database" or "create brand assets". A harness bundles many of these skills together to define a **complete agent role**.
 
-One analogy is to conceptualize a harness as a job title, where skills are like the job requirements. A "technical support" role/harness might have "database management", "ticket response", and "spreadsheet modification" requirements/skills.
+One analogy is to conceptualize a harness as a job title, where skills are like job requirements. A "technical support" role/harness might have "database management", "ticket response", and "spreadsheet modification" requirements/skills.
+
+## Routing Through a Harness
+
+For each top-level directory, the harness uses a **routing file** to help the agent navigate its contents. The routing file is named after the top-level directory in all-caps — `TOOLS.md` for `tools/`, `DATA.md` for `data/`, and so on. This convention propagates through every subdirectory in that branch:
+
+```
+my-harness/
+├── HARNESS.md
+├── tools/
+│   ├── TOOLS.md            # Describes the tools/ branch
+│   ├── backend/
+│   │   ├── TOOLS.md        # Describes this subgroup
+│   │   └── create-api/
+│   └── frontend/
+│       ├── TOOLS.md
+│       └── build-ui/
+└── data/
+    ├── DATA.md             # Describes the data/ branch
+    ├── schemas/
+    │   ├── DATA.md
+    │   └── table-definitions.md
+    └── quirks/
+        ├── DATA.md
+        └── known-issues.md
+```
+
+By reading a routing file, an agent can quickly decide whether a branch is relevant to the current task — without opening every file inside it. `HARNESS.md` points to these routing files rather than listing every individual item, keeping the entry point short as the harness grows.
+
+Routing files are optional — for small directories, filenames and description frontmatter are often enough. For larger or more varied groups, a well-written routing file is the difference between efficient discovery and exhaustive scanning.
 
 ## Why do Harnesses Exist, and Why This Specification?
 
 Harnesses have emerged organically across the industry as a necessity. When defining complex agents, many skills need to be leveraged in tandem, and much information is required to contextualize those skills and how they relate to the environment the agent is working in.
 
-Because of the richness of information required, agents that employ large harnesses are often slow. The underlying LLM needs to scan through large sets of documentation and a wide array of skills to effectively make correct decisions. Harnesses don't currently have a defined structure, making it is difficult to optimize agents to leverage the information within a harness efficiently.
+Because of the richness of information required, agents that employ large harnesses are often slow. The underlying LLM needs to scan through large sets of documentation and a wide array of skills to effectively make correct decisions. Harnesses don't currently have a defined structure, making it difficult to optimize agents to leverage the information within a harness efficiently.
 
 The goal of the "Agent Harnesses" standard is to standardize how agent harnesses are defined; making it easier to create harnesses, and to build agents that leverage them efficiently and effectively.
 

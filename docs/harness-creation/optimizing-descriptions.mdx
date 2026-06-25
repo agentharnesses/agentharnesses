@@ -1,15 +1,15 @@
 ---
 title: Optimizing Descriptions
-description: How to write descriptions that help agents activate the right skills at the right time.
+description: How to write descriptions that help agents navigate to the right content at the right time.
 ---
 
 # Optimizing Descriptions
 
-Descriptions are short but load-bearing. They are the primary signal an agent uses during the **Discovery** phase to decide which skills and references are relevant to a given task. A poor description means skills get ignored or loaded unnecessarily.
+Descriptions are short but load-bearing. They are the primary signal an agent uses during the **Discovery** phase to decide which directories and files are relevant to a given task. A poor description means content gets ignored or loaded unnecessarily.
 
 ## The description field
 
-Every `HARNESS.md`, `SKILLS.md`, and `REFERENCES.md` has a `description` field in its frontmatter. Individual markdown reference files should include one too. Write this field as if you're answering the question: *"When should an agent use this?"*
+Every `HARNESS.md` and every routing file has a `description` field in its frontmatter. Individual markdown files should include one too. Write this field as if you're answering the question: *"When should an agent look here?"*
 
 ```yaml
 ---
@@ -31,7 +31,7 @@ description: Summarization skill.
 
 ### Be specific about the trigger
 
-A description should make it obvious when this skill or reference applies. Include the input type, the output type, or the situation.
+A description should make it obvious when this skill, directory, or document applies. Include the input type, the output type, or the situation.
 
 | Weak | Strong |
 |---|---|
@@ -39,16 +39,16 @@ A description should make it obvious when this skill or reference applies. Inclu
 | "Database stuff" | "Read from and write to the PostgreSQL product database" |
 | "Style information" | "Typography, tone, and formatting rules for all marketing output" |
 
-### Use verbs for skills, nouns for references
+### Use verbs for actions, nouns for context
 
-Skills are actions; references are knowledge. This distinction helps agents classify what they're loading.
+Skills and capabilities are actions; reference material is knowledge. This distinction helps agents classify what they're loading.
 
-- Skill: *"Generate a social media caption from a product description"*
-- Reference: *"Brand voice guidelines and prohibited language list"*
+- Capability: *"Generate a social media caption from a product description"*
+- Context: *"Brand voice guidelines and prohibited language list"*
 
 ### Don't describe implementation details
 
-The description is for relevance matching, not for explaining how the skill works. Keep implementation detail in the body.
+The description is for relevance matching, not for explaining how something works. Keep implementation detail in the body.
 
 | Too much detail | Right level |
 |---|---|
@@ -56,31 +56,26 @@ The description is for relevance matching, not for explaining how the skill work
 
 ### Match the vocabulary users will use
 
-Agents compare task descriptions against skill descriptions. If your users say "summarize this" and your skill description says "condense and abridge", there's a mismatch. Use the words your users reach for naturally.
+Agents compare task descriptions against content descriptions. If your users say "summarize this" and your description says "condense and abridge", there's a mismatch. Use the words your users reach for naturally.
 
 ---
 
 ## Descriptions in HARNESS.md body
 
-Inside the `HARNESS.md` body, you list skills and references with inline descriptions. These should be even shorter — one clause is ideal — because the agent is scanning a list, not reading a document.
+Inside the `HARNESS.md` body, you list top-level directories with inline descriptions. These should be even shorter — one clause is ideal — because the agent is scanning a list, not reading a document.
 
 ```markdown
-**Skills**
-- `create-blog-post` — draft or edit a long-form blog article
-- `generate-images` — produce a visual asset from a text description
-- `scan-social` — search and summarize recent social media activity
-
-**References**
-- `style-guide.md` — typography, tone, and formatting rules for all output
-- `brand-priorities.md` — current campaign focus areas and voice guidelines
+- `tools/` — capabilities for querying databases and processing files (see TOOLS.md)
+- `data/` — schemas, data quality notes, and field definitions (see DATA.md)
+- `outputs/` — skills for generating charts, tables, and reports (see OUTPUTS.md)
 ```
 
-Each entry should be self-contained: a reader (or agent) who has never seen the harness should immediately understand what that skill or reference is for.
+Each entry should be self-contained: a reader (or agent) who has never seen the harness should immediately understand what that directory is for.
 
 ---
 
 ## Testing descriptions
 
-The practical test for a description is to give it to a colleague (or the agent itself) and ask: "Based only on this description, would you know when to use this?" If the answer is "it depends" or "I'm not sure", the description needs work.
+The practical test for a description is to give it to a colleague (or the agent itself) and ask: "Based only on this description, would you know when to look here?" If the answer is "it depends" or "I'm not sure", the description needs work.
 
 See [Evaluating Harnesses](/harness-creation/evaluating-harnesses) for a systematic approach to testing description quality.

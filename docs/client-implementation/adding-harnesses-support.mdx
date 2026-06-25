@@ -12,11 +12,11 @@ This guide is for developers building AI clients, IDEs, agent frameworks, or oth
 A compliant client must support the four-phase loading model:
 
 1. **Load** — at session start, inject the full `HARNESS.md` body into the agent's context
-2. **Discovery** — expose tools so the agent can read skill and reference descriptions to find what is relevant to a task
-3. **Activation** — expose tools so the agent can read the full content of a skill or reference when its description matches the task
+2. **Discovery** — expose tools so the agent can read routing files and content descriptions to find what is relevant to a task
+3. **Activation** — expose tools so the agent can read the full content of a skill, document, or routing file when it matches the task
 4. **Execution** — expose tools so the agent can run scripts bundled within skills
 
-Clients may implement additional features (caching, skill search, UI affordances) but these four behaviors are the baseline.
+Clients may implement additional features (caching, search, UI affordances) but these four behaviors are the baseline.
 
 ---
 
@@ -24,7 +24,7 @@ Clients may implement additional features (caching, skill search, UI affordances
 
 ### Load
 
-At session start, read `HARNESS.md` frontmatter to get `name` and `description` for routing or presenting the harness to the user, then inject the full body into the agent's context:
+At session start, read `HARNESS.md` frontmatter to get `name` and `description`, then inject the full body into the agent's context:
 
 ```python
 harness = parse_frontmatter_and_body("HARNESS.md")
@@ -32,59 +32,48 @@ present_to_user(harness.name, harness.description)
 inject_into_context(harness.body)
 ```
 
-`HARNESS.md` is the agent's map of the harness — it establishes the agent's role and tells it what skills and references are available.
+`HARNESS.md` is the agent's map of the harness — it establishes the agent's role and tells it what top-level directories are available.
 
 ### Discovery
 
-When a task arrives, the agent reads skill and reference descriptions to decide what is relevant. Expose a tool so the agent can request descriptions on demand rather than having the client inject everything upfront.
+When a task arrives, the agent reads routing files to decide which directories are relevant. Expose a tool so the agent can request content on demand rather than having the client inject everything upfront.
 
 ### Activation
 
-When the agent determines a skill or reference is relevant, your client reads the requested content and returns it. Expose these tools to the agent:
+When the agent determines a directory or file is relevant, your client reads the requested content and returns it. A single path-based tool handles the full directory hierarchy:
 
 ```
-load_skill(path: str) -> str
-    If path points to a grouping directory, returns its SKILLS.md.
-    If path points to a leaf skill directory, returns its SKILL.md and lists available scripts.
-
-load_reference(path: str) -> str
-    If path points to a grouping directory, returns its REFERENCES.md.
+load_content(path: str) -> str
+    If path points to a grouping directory, returns its routing file.
+    If path points to a leaf directory, returns its primary file (per .leaf-detectors)
+      and lists available scripts.
     If path points to a file, returns the full file content.
 ```
 
-Using paths rather than names keeps the interface uniform across flat and grouped harnesses and handles arbitrary nesting without client changes.
+Using a single path-based interface keeps the API uniform across flat and deeply nested harnesses and handles arbitrary directory structures without client changes.
 
 ---
 
-## Handling subdirectories
+## Traversal and termination
 
-Skills and references may be organized into named grouping subdirectories. Each grouping directory contains a `SKILLS.md` or `REFERENCES.md` summary file that describes its contents.
+A harness may contain any number of top-level subdirectories. Each uses a routing file named after the top-level directory in all-caps — `TOOLS.md` for `tools/`, `DATA.md` for `data/`, and so on. This convention propagates throughout each subtree.
 
-```
-skills/
-├── data-access/
-│   ├── SKILLS.md          ← summary for this group
-│   ├── query-database/
-│   │   └── SKILL.md
-│   └── read-spreadsheet/
-│       └── SKILL.md
-└── reporting/
-    ├── SKILLS.md
-    └── generate-report/
-        └── SKILL.md
-```
+The agent navigates progressively: reads `HARNESS.md` to learn about top-level directories, loads a routing file to learn what is in a branch, then loads individual files only when a task requires them.
 
-The agent navigates this hierarchy progressively: it reads `HARNESS.md` to learn about groups, loads a `SKILLS.md` to learn what is in a group, then loads individual `SKILL.md` files only when a task requires them. Your client's `load_skill` tool handles all three levels via the same path-based interface.
+Two mechanisms signal that a directory should not be traversed further:
 
-The same pattern applies to `references/` with `REFERENCES.md`. Groups may be nested arbitrarily; each level gets its own summary file.
+- **`.harnessleaf`** — a file that explicitly marks a directory as a leaf
+- **`.leaf-detectors`** — a file at the harness root declaring keyword patterns; any directory containing the named file is treated as a leaf of the declared type
+
+Your `load_content` tool should respect these boundaries: return the leaf directory's primary file or listing rather than recursing into subdirectories.
 
 ---
 
 ## Reference file types
 
-References may be any file type — markdown, images, code, data files, or anything else. Your `load_reference` tool should return the raw file content and let the agent handle interpretation.
+Files in a harness may be any type — markdown, images, code, data files, or anything else. Your `load_content` tool should return the raw file content and let the agent handle interpretation.
 
-When indexing references for presentation or search, only markdown files (`.md`) may carry a `description` frontmatter field. Non-markdown files have no structured metadata.
+When indexing files for presentation or search, only markdown files (`.md`) may carry a `description` frontmatter field. Non-markdown files have no structured metadata.
 
 ---
 
@@ -96,7 +85,7 @@ When an agent invokes a script bundled inside a skill, your client is responsibl
 - Scripts write results to stdout
 - Non-zero exit code indicates failure; stderr contains the error message
 
-Clients should sandbox script execution appropriately for their environment and expose a `run_script(skill: str, script: str, args: list[str]) -> str` tool to the agent.
+Clients should sandbox script execution appropriately for their environment and expose a `run_script(path: str, script: str, args: list[str]) -> str` tool to the agent.
 
 ---
 
@@ -109,7 +98,7 @@ pip install harnesses-ref
 harnesses-ref validate ./my-harness
 ```
 
-The validator checks structural correctness including `HARNESS.md` frontmatter, skill validity, and the presence of `SKILLS.md`/`REFERENCES.md` in grouping subdirectories. Clients may run this check at install time and surface errors to the user.
+The validator checks structural correctness including `HARNESS.md` frontmatter, detected skill leaf validity, and the presence of routing files in grouping subdirectories. Clients may run this check at install time and surface errors to the user.
 
 ---
 
@@ -120,55 +109,69 @@ A minimal Python implementation of harness loading:
 ```python
 from pathlib import Path
 
+
 def load_harness(harness_path: Path) -> dict:
     harness_md = (harness_path / "HARNESS.md").read_text()
     frontmatter, body = parse_frontmatter_and_body(harness_md)
-
-    skills = []
-    for skill_md in harness_path.glob("skills/**/SKILL.md"):
-        fm, _ = parse_frontmatter_and_body(skill_md.read_text())
-        skills.append({
-            "name": fm["name"],
-            "description": fm["description"],
-            "path": skill_md.parent,
-        })
-
-    references = []
-    for ref in (harness_path / "references").rglob("*"):
-        if ref.is_dir() or ref.name in ("REFERENCES.md",):
-            continue  # skip grouping summaries; they are loaded on demand
-        description = ""
-        if ref.suffix == ".md":
-            fm, _ = parse_frontmatter_and_body(ref.read_text())
-            description = fm.get("description", "")
-        references.append({
-            "filename": ref.name,
-            "description": description,
-            "path": ref,
-        })
-
     return {
         "name": frontmatter["name"],
         "description": frontmatter["description"],
         "body": body,
-        "skills": skills,
-        "references": references,
     }
 
-def load_skill(harness_path: Path, skill_path: str) -> str:
-    target = harness_path / "skills" / skill_path
-    if (target / "SKILLS.md").exists():
-        return (target / "SKILLS.md").read_text()
-    skill_md = target / "SKILL.md"
-    scripts = list(target.glob("scripts/*"))
-    result = skill_md.read_text()
-    if scripts:
-        result += "\n\nAvailable scripts: " + ", ".join(s.name for s in scripts)
-    return result
 
-def load_reference(harness_path: Path, ref_path: str) -> str:
-    target = harness_path / "references" / ref_path
-    if target.is_dir() and (target / "REFERENCES.md").exists():
-        return (target / "REFERENCES.md").read_text()
+def _load_leaf_detectors(harness_path: Path) -> dict[str, str]:
+    detectors: dict[str, str] = {}
+    leaf_file = harness_path / ".leaf-detectors"
+    if leaf_file.exists():
+        for line in leaf_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                leaf_type, rel_path = line.split("=", 1)
+                detectors[leaf_type.strip()] = rel_path.strip()
+    return detectors
+
+
+def _routing_file_name(top_level_dir: Path) -> str:
+    return top_level_dir.name.upper() + ".md"
+
+
+def _leaf_type(directory: Path, detectors: dict[str, str]) -> str | None:
+    if (directory / ".harnessleaf").exists():
+        return "leaf"
+    for ltype, rel_path in detectors.items():
+        if (directory / rel_path).exists():
+            return ltype
+    return None
+
+
+def load_content(harness_path: Path, rel_path: str) -> str:
+    target = harness_path / rel_path
+    detectors = _load_leaf_detectors(harness_path)
+
+    if target.is_dir():
+        ltype = _leaf_type(target, detectors)
+        if ltype is not None:
+            primary_rel = detectors.get(ltype)
+            if primary_rel and (target / primary_rel).exists():
+                result = (target / primary_rel).read_text()
+                scripts = list((target / "scripts").glob("*")) if (target / "scripts").exists() else []
+                if scripts:
+                    result += "\n\nAvailable scripts: " + ", ".join(s.name for s in scripts)
+                return result
+            return "\n".join(f.name for f in sorted(target.iterdir()))
+
+        # Find the top-level ancestor to derive the routing file name
+        parts = Path(rel_path).parts
+        routing_name = parts[0].upper() + ".md" if parts else "HARNESS.md"
+        routing_file = target / routing_name
+        if routing_file.exists():
+            return routing_file.read_text()
+
+        # Fall back to listing the directory
+        return "\n".join(f.name for f in sorted(target.iterdir()))
+
     return target.read_bytes().decode(errors="replace")
 ```

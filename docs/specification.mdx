@@ -7,23 +7,22 @@ description: The complete Agent Harnesses format specification.
 
 ## Overview
 
-A harness is a directory that gives an AI agent everything it needs to fulfill a role. It consists of three components:
-
-| Component | Required | Purpose |
-|---|---|---|
-| `HARNESS.md` | Yes | Identity, description, and structural overview |
-| `skills/` | No | Atomic capabilities following the Agent Skills standard |
-| `references/` | No | Cross-cutting documentation that applies across skills |
+A harness is a directory that gives an AI agent everything it needs to fulfill a role. It contains a required `HARNESS.md` file, an optional `.leaf-detectors` configuration file, and any number of top-level subdirectories the domain requires:
 
 ```
 my-harness/
 ├── HARNESS.md
-├── skills/
-│   └── my-skill/
+├── .leaf-detectors         # e.g. skill=SKILL.md
+├── tools/
+│   └── query-db/
 │       └── SKILL.md
-└── references/
-    └── style-guide.md
+├── brand/
+│   └── style-guide.md
+└── data/
+    └── schema.md
 ```
+
+The subdirectory names are chosen by the harness author to reflect the agent's domain. There are no required directory names beyond `HARNESS.md` itself.
 
 ---
 
@@ -47,18 +46,16 @@ description: <one-line description>
 
 ### Body
 
-The body is free-form markdown. It must give the agent enough information to:
+The body is free-form markdown. Its primary purpose is **routing**: an agent reading `HARNESS.md` should be able to decide which subdirectories to explore for a given task without opening anything else first.
 
-- Understand the scope and purpose of the harness
-- Know which skills exist and when to use each one
-- Know which references exist and when to consult them
-
-The body should be **as brief as possible while remaining complete**. It is loaded into the agent's context window on activation and competes with other context. Avoid prose that restates the frontmatter description or explains concepts the agent already knows.
+The body should be **as brief as possible**. It is loaded into the agent's context window on every activation — every token competes with task context. Avoid prose that restates the frontmatter description or explains concepts the agent already knows.
 
 A well-structured body typically includes:
 - A one-paragraph summary of the agent's role
-- A bulleted index of skills with one-line descriptions
-- A bulleted index of references with one-line descriptions
+- A bulleted index of top-level directories with one-line descriptions
+- References to routing files within those directories for larger harnesses
+
+**Avoid over-indexing.** The more routing information the body contains, the more the agent must read before acting. Start with a minimal body and add detail only where routing demonstrably fails — not preemptively.
 
 ### Example
 
@@ -68,128 +65,104 @@ name: Marketing Assistant
 description: Helps create and review marketing content across blog, social, and visual channels.
 ---
 
-You are a marketing assistant. Use the skills and references below to produce
-content that is on-brand, consistent, and appropriate for each channel.
+You are a marketing assistant. Produce content that is on-brand, consistent,
+and appropriate for each channel.
 
-**Skills**
-- `create-blog-post` — draft and edit long-form blog articles
-- `generate-images` — produce image prompts and review generated visuals
-- `scan-social` — search and summarize recent social media activity
-
-**References**
-- `style-guide.md` — typography, tone, and formatting rules for all content
-- `brand-priorities.md` — current campaign priorities and brand voice guidelines
+- `tools/` — capabilities for content creation and research (see TOOLS.md)
+- `brand/` — tone, typography, and visual guidelines (see BRAND.md)
+- `campaigns/` — active campaign briefs and goals (see CAMPAIGNS.md)
 ```
 
 ---
 
-## Skills Directory
+## Top-Level Directories
 
-The `skills/` directory contains one subdirectory per skill. Each skill follows the [Agent Skills standard](https://github.com/agentskills/agentskills) exactly:
+The harness root may contain any number of top-level subdirectories. Each one organizes content relevant to the agent's domain — capabilities, reference material, data, outputs, environment details, or anything else the harness author needs.
+
+### Routing Files
+
+Each top-level directory establishes a **routing file** — a named markdown file used to summarize and navigate the contents of that directory and its descendants. The routing file is named after the top-level directory in all-caps with a `.md` extension:
+
+| Top-level directory | Routing file |
+|---|---|
+| `skills/` | `SKILLS.md` |
+| `references/` | `REFERENCES.md` |
+| `tools/` | `TOOLS.md` |
+| `data/` | `DATA.md` |
+| `outputs/` | `OUTPUTS.md` |
+
+The routing file name is derived from the **top-level** directory and propagates throughout the entire subtree. Every grouping subdirectory within `tools/` uses `TOOLS.md` — not a name derived from the subdirectory itself:
 
 ```
-skills/
-└── my-skill/
-    ├── SKILL.md          # Required: metadata + instructions
-    ├── scripts/          # Optional: executable code
-    ├── references/       # Optional: skill-specific documentation
-    └── assets/           # Optional: templates, resources
+tools/
+├── TOOLS.md
+├── database/
+│   ├── TOOLS.md
+│   └── query-database/
+│       └── instructions.md
+└── files/
+    ├── TOOLS.md
+    └── read-spreadsheet/
+        └── instructions.md
 ```
 
-Skills in a harness may be **organized into subdirectories** when the number of skills is large enough that a flat list becomes difficult to navigate. Each grouping subdirectory may include a `SKILLS.md` file that summarizes its contents — this is optional but strongly encouraged:
+### Routing File Format
 
-```
-skills/
-├── content-creation/
-│   ├── SKILLS.md         # Optional but recommended: index of skills within
-│   ├── create-blog-post/
-│   └── generate-images/
-└── research/
-    ├── SKILLS.md
-    └── scan-social/
-```
-
-### SKILLS.md
-
-The primary purpose of `SKILLS.md` is to support routing: an agent reading it should be able to decide quickly whether any skill in this group is relevant to the current task, without opening individual skill files. For small groups this file may be unnecessary — the skill `description` fields alone are often sufficient. For larger or more varied groups, a well-written `SKILLS.md` is the difference between efficient discovery and loading every skill to find the right one.
-
-`SKILLS.md` uses the same frontmatter-plus-body format as `HARNESS.md`. The `description` field gives a one-line characterization of the group as a whole. The body is free-form markdown — a brief narrative, a list, or a combination — written to answer "should I look here?" rather than to enumerate contents exhaustively:
+Routing files use the same frontmatter-plus-body format as `HARNESS.md`:
 
 ```markdown
 ---
-description: Skills for creating written and visual content.
----
-
-These skills cover the full content production pipeline, from drafting long-form
-articles to generating and reviewing images. Use this group when the task involves
-producing any kind of publishable asset.
-
-- `create-blog-post` — draft and edit long-form blog articles
-- `generate-images` — produce image prompts and review generated visuals
-```
-
-With `SKILLS.md` in place, `HARNESS.md` can reference the group summary rather than listing every skill individually, keeping the entry point short as the harness grows. Grouping subdirectories may be nested arbitrarily; each level gets its own `SKILLS.md`.
-
----
-
-## References Directory
-
-The `references/` directory contains markdown documents that provide **cross-skill context** — information that is relevant to more than one skill or that describes the agent's environment at a higher level of abstraction than any individual skill.
-
-Typical reference content:
-- Brand guidelines and style guides
-- Organizational priorities or constraints
-- Infrastructure overviews and environment details
-- Personas, audiences, or stakeholder maps
-
-### Reference File Format
-
-Reference files may be any file type. Markdown is the recommended format — it is human-readable, broadly supported, and allows a `description` frontmatter field that agents can use to evaluate relevance during the Discovery phase without reading the full file:
-
-```markdown
----
-description: <one-line summary of what this document covers>
+description: <one-line summary of the contents of this directory>
 ---
 
 <body>
 ```
 
-### Organization
-
-Like the skills directory, references may be organized into subdirectories. Each grouping subdirectory may include a `REFERENCES.md` file that summarizes its contents — this is optional but strongly encouraged:
-
-```
-references/
-├── brand/
-│   ├── REFERENCES.md     # Optional but recommended: index of references within
-│   ├── style-guide.md
-│   └── voice-guidelines.md
-└── infrastructure/
-    ├── REFERENCES.md
-    ├── database-overview.md
-    └── api-inventory.md
-```
-
-### REFERENCES.md
-
-The primary purpose of `REFERENCES.md` is to support routing: an agent reading it should be able to decide quickly whether any document in this group is relevant to the current task. This is particularly important for references because they vary widely in file type and may not carry a machine-readable `description` field — without a summary file, the agent has little to go on besides filenames.
-
-`REFERENCES.md` follows the same frontmatter-plus-body format as individual reference files. The `description` field characterizes the group as a whole. The body is free-form markdown written to answer "should I look here?":
+The `description` field characterizes the directory as a whole. The body is free-form markdown written to answer "should I look here?" — a brief narrative, a list of subdirectory descriptions, or both:
 
 ```markdown
 ---
-description: Brand guidelines governing tone, typography, and visual style.
+description: Tools for querying databases and reading structured files.
 ---
 
-These documents define how all published content should look and sound. Consult
-this group whenever the task involves producing or reviewing content that will
-be seen externally.
+Use this group when the task involves retrieving or manipulating data from
+any external source. Subdirectories are organized by source type.
 
-- `style-guide.md` — typography, tone, and formatting rules for all content
-- `voice-guidelines.md` — brand voice principles and examples
+- `database/` — SQL query tools for relational databases
+- `files/` — readers for spreadsheets, CSVs, and JSON
+- `compute/` — Python and SQL execution environments
 ```
 
-`HARNESS.md` can then point to the group summary instead of each file individually. Grouping subdirectories may be nested arbitrarily; each level gets its own `REFERENCES.md`.
+Routing files are optional at any level — for small directories, filenames and `description` frontmatter fields in individual files are often sufficient. For larger or more varied groups, a well-written routing file is the difference between efficient discovery and exhaustive scanning.
+
+Subdirectories may be nested arbitrarily, with each grouping level getting its own routing file.
+
+---
+
+## Termination
+
+By default an agent traversing a harness may explore any subdirectory. Two mechanisms mark a directory as a **leaf** — a terminal point beyond which the harness routing logic does not recurse:
+
+### `.harnessleaf`
+
+A file named `.harnessleaf` placed in a directory signals an explicit termination boundary. The agent treats the directory as a unit to be read or invoked rather than a branch to explore further.
+
+### `.leaf-detectors`
+
+`.leaf-detectors` is an optional file at the harness root that defines **keyword patterns** — rules that automatically mark a directory as a leaf when it contains a specific file. It uses a simple line-based format:
+
+```
+# Lines beginning with # are comments.
+# Format: leaf_type=relative_path
+# A directory containing the specified path is treated as a leaf of that type.
+skill=SKILL.md
+```
+
+Each line declares that any directory containing the named file is a leaf of the given type. There are no built-in patterns — all detection is explicit. A harness that contains Agent Skills should declare `skill=SKILL.md`; without that entry, directories containing `SKILL.md` are traversed rather than treated as skill leaves.
+
+Leaf type names are meaningful: clients and tools use them to decide how to handle the leaf. A `skill` leaf is loaded and executed as an Agent Skill. Other types are treated as opaque boundaries — traversal stops, and the agent is expected to access the directory through a dedicated skill or tool.
+
+Termination gives the harness a well-defined boundary. It prevents the routing layer from recursing into skill internals (`scripts/`, internal `references/`, `assets/`) and into large content stores that are meant to be accessed through a purpose-built traversal skill.
 
 ---
 
@@ -199,12 +172,12 @@ Harnesses use **progressive disclosure** — agents load only what each task req
 
 | Phase | Trigger | Interaction with the harness |
 |---|---|---|
-| **Load** | Session start | Full `HARNESS.md` body is injected into context, establishing the agent's role and constraints |
-| **Discovery** | Task received | Agent reads `SKILLS.md` / `REFERENCES.md` group summaries to find relevant capabilities |
-| **Activation** | Description aligns with task | Agent reads the full content of a relevant skill or reference |
+| **Load** | Session start | Full `HARNESS.md` body is injected into context, establishing the agent's role |
+| **Discovery** | Task received | Agent reads routing files to find relevant subdirectories |
+| **Activation** | Routing aligns with task | Agent reads the full content of a relevant skill, directory, or file |
 | **Execution** | Action required | Agent runs a script bundled within a skill |
 
-`HARNESS.md` is the agent's map of the harness. From there the agent navigates progressively — reading group summaries to understand what is available, then loading individual skills and references only when a task requires them. This model allows a harness to contain dozens of skills and references without consuming the full context window on every interaction.
+`HARNESS.md` is the agent's map of the harness. From there the agent navigates progressively — reading routing files to decide which branch is relevant, then loading individual files only when a task requires them. This model allows a harness to contain dozens of capabilities and reference documents without consuming the full context window on every interaction.
 
 ---
 

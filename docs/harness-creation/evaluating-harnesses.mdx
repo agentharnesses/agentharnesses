@@ -1,11 +1,11 @@
 ---
 title: Evaluating Harnesses
-description: How to test that your harness behaves correctly and activates the right skills.
+description: How to test that your harness behaves correctly and routes to the right content.
 ---
 
 # Evaluating Harnesses
 
-A harness that validates structurally may still fail in practice if descriptions are vague, `HARNESS.md` is too long, or skills overlap in confusing ways. This guide covers how to evaluate harness quality before deploying it to users.
+A harness that validates structurally may still fail in practice if descriptions are vague, `HARNESS.md` is too long, or content overlaps in confusing ways. This guide covers how to evaluate harness quality before deploying it to users.
 
 ## Structural validation
 
@@ -17,12 +17,11 @@ harnesses-ref validate ./my-harness
 
 This checks:
 - `HARNESS.md` exists and has required frontmatter (`name`, `description`)
-- All items in `skills/` are valid Agent Skills (contain `SKILL.md` with required frontmatter)
-- Markdown files in `references/` are recommended to have a `description` in their frontmatter
+- All skill leaves (directories detected as skills via `.leaf-detectors`) have valid frontmatter
 
 It also emits warnings (non-fatal) for:
-- Skill grouping subdirectories missing a `SKILLS.md` summary file
-- Reference grouping subdirectories missing a `REFERENCES.md` summary file
+- Grouping subdirectories missing a routing file — routing files enable progressive disclosure but are not required
+- Markdown content files missing a `description` in their frontmatter — descriptions help agents decide whether to load a file
 
 Fix any structural errors before proceeding to behavioral testing. Warnings do not block validation but are worth addressing for larger harnesses where routing quality matters.
 
@@ -30,26 +29,26 @@ Fix any structural errors before proceeding to behavioral testing. Warnings do n
 
 ## Behavioral testing
 
-Structural validity doesn't guarantee the agent will use the harness correctly. Test behavior by running the agent with representative prompts and checking which skills it activates.
+Structural validity doesn't guarantee the agent will navigate the harness correctly. Test behavior by running the agent with representative prompts and checking which content it loads.
 
 ### Build a test prompt set
 
-Write 10–20 prompts that represent real tasks the agent will receive. For each prompt, note which skill(s) you expect the agent to activate.
+Write 10–20 prompts that represent real tasks the agent will receive. For each prompt, note which skills or documents you expect the agent to load.
 
-| Prompt | Expected skill |
+| Prompt | Expected content |
 |---|---|
-| "Summarize this article for me" | `summarize` |
-| "Write a blog post about our new feature" | `create-blog-post` |
-| "What's our brand voice?" | *(reference lookup: `brand-priorities.md`)* |
-| "Generate a product image" | `generate-images` |
+| "Summarize this article for me" | `skills/summarize` |
+| "Write a blog post about our new feature" | `skills/create-blog-post` |
+| "What's our brand voice?" | `brand/voice-guidelines.md` |
+| "Generate a product image" | `skills/generate-images` |
 
-### Check for activation errors
+### Check for routing errors
 
-Run each prompt and observe what the agent activates:
+Run each prompt and observe what the agent loads:
 
-- **Wrong skill activated** — the description of the correct skill doesn't match the user's vocabulary; revise the description
-- **No skill activated** — the task wasn't covered by any skill, or the skill description was too narrow; expand it or add a new skill
-- **Multiple skills activated unnecessarily** — skill descriptions overlap; tighten the scope of each
+- **Wrong content loaded** — the description of the correct skill or document doesn't match the user's vocabulary; revise the description
+- **Nothing loaded** — the task wasn't covered, or the description was too narrow; expand it or add new content
+- **Too much loaded unnecessarily** — descriptions overlap; tighten the scope of each
 
 ### Check HARNESS.md length
 
@@ -57,13 +56,13 @@ If the agent is slow to respond or loses context mid-task, `HARNESS.md` may be t
 
 - Under 300 tokens — ideal
 - 300–600 tokens — acceptable for complex harnesses
-- Over 600 tokens — consider reorganizing with subdirectories and shortening descriptions
+- Over 600 tokens — consider reorganizing with subdirectories and shortening to routing file pointers
 
 ---
 
 ## Regression testing
 
-Whenever you update a skill, add a new one, or edit `HARNESS.md`, re-run your full test prompt set. Changes to one skill's description can cause the agent to misroute prompts that previously worked.
+Whenever you update a skill, add new content, or edit `HARNESS.md`, re-run your full test prompt set. Changes to one description can cause the agent to misroute prompts that previously worked.
 
 Keep your test prompt set in version control alongside the harness.
 

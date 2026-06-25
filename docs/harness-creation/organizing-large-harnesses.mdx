@@ -1,131 +1,129 @@
 ---
 title: Organizing Large Harnesses
-description: How to use subdirectories, SKILLS.md, and REFERENCES.md to manage harnesses with many skills and references.
+description: How to use top-level directories and routing files to manage harnesses with many skills and documents.
 ---
 
 # Organizing Large Harnesses
 
-As a harness grows, listing every skill and reference directly in `HARNESS.md` becomes unwieldy. Subdirectories let you group related skills and references together, keeping `HARNESS.md` short while still giving the agent a clear map of what's available.
+As a harness grows, listing every skill and document directly in `HARNESS.md` becomes unwieldy. Top-level subdirectories let you group related content together, keeping `HARNESS.md` short while still giving the agent a clear map of what's available.
 
-## Subdirectory Structure
+## Top-Level Directories
 
-Organize `skills/` and `references/` into named subdirectories by theme:
+Choose top-level directory names that reflect your domain. There are no required names — structure the harness around how the agent actually thinks about its work:
 
 ```
-my-harness/
+data-analyst-harness/
+├── HARNESS.md
+├── tools/
+├── data/
+└── outputs/
+```
+
+```
+marketing-assistant-harness/
 ├── HARNESS.md
 ├── skills/
-│   ├── data-access/
-│   │   ├── SKILLS.md
+├── brand/
+└── campaigns/
+```
+
+Each top-level directory establishes a **routing file** — a markdown file named after the directory in all-caps that summarizes and navigates its contents.
+
+## Routing Files
+
+The routing file name is derived from the top-level directory name and propagates throughout the entire subtree. Every subdirectory within `tools/` uses `TOOLS.md`; every subdirectory within `data/` uses `DATA.md`:
+
+```
+data-analyst-harness/
+├── HARNESS.md
+├── .leaf-detectors           ← declares skill=SKILL.md
+├── tools/
+│   ├── TOOLS.md              ← describes the tools/ branch
+│   ├── database/
+│   │   ├── TOOLS.md          ← describes this subgroup
 │   │   ├── query-database/
-│   │   │   ├── SKILL.md
-│   │   │   └── scripts/
-│   │   └── read-spreadsheet/
-│   │       ├── SKILL.md
-│   │       └── scripts/
-│   └── reporting/
-│       ├── SKILLS.md
-│       ├── generate-chart/
-│       │   ├── SKILL.md
-│       │   └── scripts/
-│       └── write-summary/
-│           ├── SKILL.md
-│           └── scripts/
-└── references/
-    ├── data-sources/
-    │   ├── REFERENCES.md
-    │   ├── schema-overview.md
-    │   ├── table-relationships.md
-    │   ├── field-definitions.md
-    │   └── known-data-quirks.md
-    └── report-standards/
-        ├── REFERENCES.md
-        ├── formatting-guide.md
-        ├── chart-types.md
-        ├── color-palette.md
-        └── stakeholder-glossary.md
+│   │   │   └── SKILL.md
+│   │   └── write-database/
+│   │       └── SKILL.md
+│   └── files/
+│       ├── TOOLS.md
+│       └── read-spreadsheet/
+│           └── SKILL.md
+└── data/
+    ├── DATA.md               ← describes the data/ branch
+    ├── schemas/
+    │   ├── DATA.md
+    │   └── table-definitions.md
+    └── quirks/
+        ├── DATA.md
+        └── known-issues.md
 ```
 
-## SKILLS.md and REFERENCES.md
+Routing files use the same frontmatter-plus-body format as `HARNESS.md`:
 
-Adding a summary file to each subdirectory is optional but strongly encouraged. The primary purpose of these files is routing: an agent reading a summary should be able to decide quickly whether the group is relevant to the current task, without opening individual files.
-
-`SKILLS.md` is valuable when a group is large or varied enough that the individual skill descriptions alone don't paint a clear picture. `REFERENCES.md` is especially valuable because references vary widely in file type and may not carry a machine-readable `description` field — without a summary, the agent has little to go on besides filenames.
-
-The body is free-form markdown. A brief narrative works well, optionally followed by a list for larger groups:
-
-**`skills/data-access/SKILLS.md`**
 ```markdown
 ---
-description: Skills for retrieving data from databases and files.
+description: Tools for querying databases and reading structured files.
 ---
 
-Use this group when the task requires reading from the product database or
-from uploaded spreadsheets.
+Use this group when the task involves retrieving or manipulating data from
+any external source.
 
-- `query-database` — run a read-only SQL query against the product database
-- `read-spreadsheet` — read rows and columns from a CSV or Excel file
+- `database/` — SQL tools for relational databases
+- `files/` — readers for spreadsheets and CSVs
 ```
 
-**`references/data-sources/REFERENCES.md`**
+The primary purpose of a routing file is to answer "should I look here?" — a brief narrative, a list of subdirectory descriptions, or both. It is not a directory listing; it is a routing decision support document. Because it is free-form markdown, it can express nuance: cross-references to other directories, ordering hints, exceptions, or anything else that helps the agent decide quickly without reading every file.
+
+## Routing in HARNESS.md
+
+With routing files in place, `HARNESS.md` points to the top-level directories rather than listing every item individually:
+
 ```markdown
 ---
-description: Reference material about the structure and contents of available data sources.
+name: Data Analyst Assistant
+description: Answers data questions by querying databases, reading files, and generating reports.
 ---
 
-Consult this group before writing any queries or interpreting query results.
-It covers the schema, table relationships, field definitions, and known data
-quality issues.
+You are a data analyst assistant.
 
-- `schema-overview.md` — high-level diagram and description of the database schema
-- `table-relationships.md` — foreign key relationships between tables
-- `field-definitions.md` — detailed field-level documentation
-- `known-data-quirks.md` — known data quality issues and workarounds
+- `tools/` — capabilities for data retrieval and computation (see TOOLS.md)
+- `data/` — schemas, quirks, and context about available data sources (see DATA.md)
+- `outputs/` — skills for generating charts, tables, and written reports (see OUTPUTS.md)
 ```
 
-With this in place, `HARNESS.md` stays short:
+## Termination
 
-```markdown
-**Skills**
-- `skills/data-access/` — skills for retrieving data (see `SKILLS.md`)
-- `skills/reporting/` — skills for presenting findings (see `SKILLS.md`)
+By default an agent may explore any subdirectory. Two mechanisms stop traversal at the right boundary:
 
-**References**
-- `references/data-sources/` — data structure and quality notes (see `REFERENCES.md`)
-- `references/report-standards/` — formatting and chart conventions (see `REFERENCES.md`)
-```
+- **`.harnessleaf`** — place this file in any directory to mark it as an explicit leaf the agent should not recurse into
+- **`.leaf-detectors`** — a file at the harness root that declares keyword patterns; any directory containing the named file is treated as a leaf of the declared type (e.g. `skill=SKILL.md`)
+
+This prevents the agent from wandering into skill internals (`scripts/`, internal `references/`) or large document stores that are meant to be accessed through a dedicated traversal skill.
 
 ## Nesting
 
-This structure can be nested arbitrarily. Each level of subdirectory gets its own `SKILLS.md` or `REFERENCES.md`, allowing the agent to incrementally traverse the hierarchy rather than loading everything at once.
+Subdirectories may be nested arbitrarily. Each level gets its own routing file, allowing the agent to incrementally drill down rather than loading everything at once:
 
 ```
-my-harness/
-├── HARNESS.md
-├── skills/
-│   └── data-access/
-│       ├── SKILLS.md
-│       ├── databases/
-│       │   ├── SKILLS.md
-│       │   └── query-postgres/
-│       │       └── SKILL.md
-│       └── files/
-│           ├── SKILLS.md
-│           └── read-csv/
-│               └── SKILL.md
-└── references/
-    └── data-sources/
-        ├── REFERENCES.md
-        ├── relational/
-        │   ├── REFERENCES.md
-        │   └── schema-overview.md
-        └── warehouse/
-            ├── REFERENCES.md
-            └── dataset-catalog.md
+tools/
+├── TOOLS.md
+├── database/
+│   ├── TOOLS.md
+│   ├── relational/
+│   │   ├── TOOLS.md
+│   │   └── query-postgres/
+│   │       └── SKILL.md
+│   └── warehouse/
+│       ├── TOOLS.md
+│       └── query-bigquery/
+│           └── SKILL.md
+└── files/
+    ├── TOOLS.md
+    └── read-csv/
+        └── SKILL.md
 ```
 
-At each level, the agent reads only the summary file to understand what's available, then drills into subdirectories or individual files only when the task requires it. This is the same **progressive disclosure** model that governs the harness as a whole.
+Skill directories in this tree (`query-postgres/`, `query-bigquery/`, `read-csv/`) are treated as leaves because the harness root contains a `.leaf-detectors` file declaring `skill=SKILL.md`. Without that entry, those directories would be traversed as ordinary grouping directories.
 
-## Example
-
-The [`data-analyst-assistant`](https://github.com/agentharnesses/agentharnesses/tree/main/examples/data-analyst-assistant) example demonstrates this pattern with three reference subdirectories and two skill subdirectories.
+At each level the agent reads only the routing file to understand what's available, then drills in only when a task requires it — the same **progressive disclosure** model that governs the harness as a whole.

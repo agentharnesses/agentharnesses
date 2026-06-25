@@ -11,49 +11,68 @@ Each skill should do one thing. Resist the temptation to build a large skill tha
 
 **Instead of:**
 ```
-skills/
+tools/
 └── content/         # drafts posts, generates images, scans social, emails stakeholders
 ```
 
 **Prefer:**
 ```
-skills/
+tools/
 ├── create-blog-post/
 ├── generate-images/
 ├── scan-social/
 └── email-stakeholders/
 ```
 
-Atomic skills are easier to test, easier to reuse across harnesses, and easier to update independently. While broad skills can be employed within a harness, smaller and more atomic skills are encouraged.
+Atomic skills are easier to test, easier to reuse across harnesses, and easier to update independently.
 
 ---
 
-## Put cross-skill knowledge in the harness references, not in individual skills
+## Put shared context in a dedicated top-level directory
 
-Individual skills may have their own `references/` directory for knowledge specific to that skill. The harness also has a top-level `references/` directory for knowledge that applies across multiple skills.
+Content that is relevant across multiple skills — style guides, environment details, organizational priorities — belongs in its own top-level directory, not inside any individual skill. This avoids duplication and keeps cross-cutting knowledge in one place.
 
-If a piece of information is relevant to more than one skill, it belongs in the harness-level `references/`, not inside any individual skill. This avoids duplication and keeps cross-cutting knowledge in one place.
+Choose a directory name that fits your domain: `context/`, `references/`, `environment/`, `brand/` — whatever reflects what the content actually is. Add a routing file named after that directory so the agent can navigate it efficiently.
 
 ---
 
 ## Keep HARNESS.md as short as possible
 
-`HARNESS.md` is loaded into the agent's context window on every activation. Write the minimum body that lets the agent understand the harness structure and navigate to the right skill or reference.
+`HARNESS.md` is loaded into the agent's context window on every activation. Write the minimum body that lets the agent understand the harness structure and navigate to the right content.
 
 A good body:
 - One short paragraph describing the agent's role
-- A bulleted list of skills with one-line descriptions
-- A bulleted list of references with one-line descriptions
+- A bulleted list of top-level directories with one-line descriptions
+- Pointers to routing files for larger directories
 
 A bad body:
-- Repeats information already in skill or reference files
-- Explains how skills work
-- Contains lengthy prose that could live in a reference file
+- Repeats information already in routing files or skill documents
+- Explains how skills work internally
+- Contains lengthy prose that could live in a dedicated document
 
 ---
 
-## Use subdirectories for large harnesses
+## Structure directories around the agent's domain, not the spec
 
-When a harness grows large, group related skills and references into named subdirectories. Adding a `SKILLS.md` to each skill subdirectory and a `REFERENCES.md` to each reference subdirectory is optional but strongly encouraged — these summary files exist primarily to support routing, letting the agent decide which group to explore without opening every file. `REFERENCES.md` is particularly valuable when references vary in type or lack a `description` field. This structure can be nested arbitrarily.
+The spec constrains almost nothing about top-level directory names. Choose names and structure based on how the agent thinks about its work — not on what feels technically correct.
+
+A job search harness might have `leads/`, `materials/`, and `workflow/`. A technical support harness might have `playbooks/`, `environment/`, and `escalations/`. The structure should feel obvious to whoever maintains the harness.
+
+---
+
+## Use subdirectories for large directories
+
+When a top-level directory grows large, group related content into named subdirectories and add a routing file at each level. This keeps the agent from having to scan a long flat list.
 
 See [Organizing Large Harnesses](/harness-creation/organizing-large-harnesses) for the full pattern.
+
+---
+
+## Use termination to protect boundaries
+
+Mark directories that shouldn't be traversed by the harness routing layer:
+
+- Place `.harnessleaf` in directories with large document stores that have their own access skill
+- Declare keyword patterns in `.leaf-detectors` to automatically mark directories as leaves based on the files they contain
+
+Without termination, an agent may wander into skill internals or large content stores that are meant to be accessed through a dedicated tool.
