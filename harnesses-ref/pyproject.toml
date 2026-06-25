@@ -1,6 +1,6 @@
 [project]
 name = "harnesses-ref"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Reference library for Agent Harnesses"
 license = "Apache-2.0"
 readme = "README.md"
@@ -14,8 +14,11 @@ dependencies = [
 harnesses-ref = "harnesses_ref.cli:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/harnesses_ref"]
