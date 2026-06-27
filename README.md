@@ -1,27 +1,76 @@
 # Agent Harnesses
 
-A standardized format for giving AI agents a defined role, skills, and reference material.
+A standardized, open format for giving AI agents a defined role, context, and capabilities.
 
-## What is an Agent Harness?
+## What is a Harness?
 
-A harness is a folder that gives an AI agent everything it needs to fulfill a role. As tasks arrive, the agent is able to pull skills and references relevent to that task.
+A harness is a directory that gives an AI agent everything it needs to fulfill a role. At session start the agent loads `HARNESS.md` to establish its identity; as tasks arrive, it pulls in only the content each task requires — **progressive disclosure** applied at the harness level.
 
 ```
 my-harness/
-├── HARNESS.md        # Required: identity + overview
-├── skills/           # Optional: Agent Skills (one per subdirectory)
-└── references/       # Optional: cross-skill reference documents
+├── HARNESS.md          # Required: identity + routing overview
+├── .leaf-detectors     # Optional: leaf boundary patterns
+├── tools/              # Top-level dirs are named by the harness author
+│   ├── TOOLS.md        # Routing file — describes what's in this branch
+│   └── query-db/
+│       └── SKILL.md
+└── data/
+    ├── DATA.md
+    └── schema.md
 ```
 
-For larger harnesses, skills and references can be organized into named subdirectories. Adding a `SKILLS.md` or `REFERENCES.md` summary file to each grouping subdirectory is optional but strongly encouraged — it lets the agent navigate the structure without loading every file upfront.
+Top-level directory names are chosen by the harness author. `skills/` and `references/` are common conventions but not required — any structure that fits the domain works.
+
+## Key Concepts
+
+### HARNESS.md
+
+The required entry point. Uses YAML frontmatter followed by a brief routing body:
+
+```markdown
+---
+name: Marketing Assistant
+description: Helps create and review content across blog, social, and visual channels.
+---
+
+You are a marketing assistant. Produce content that is on-brand and channel-appropriate.
+
+- `tools/` — content creation and research capabilities (see TOOLS.md)
+- `brand/` — tone, typography, and visual guidelines (see BRAND.md)
+- `campaigns/` — active campaign briefs and goals (see CAMPAIGNS.md)
+```
+
+Keep the body minimal — it is loaded on every activation and competes with task context.
+
+### Routing Files
+
+Each top-level directory uses a **routing file** named after it in all-caps: `TOOLS.md` for `tools/`, `DATA.md` for `data/`, and so on. This convention propagates through the entire subtree — every grouping subdirectory within `tools/` also uses `TOOLS.md`. Routing files let an agent decide whether a branch is relevant without opening every file inside it.
+
+### Termination (Leaves)
+
+Two mechanisms mark a directory as a leaf — a terminal point the routing layer does not recurse into:
+
+- **`.harnessleaf`** — a file placed in any directory to signal an explicit boundary
+- **`.leaf-detectors`** — a root-level file defining keyword patterns; e.g. `skill=SKILL.md` automatically marks any directory containing `SKILL.md` as a skill leaf
+
+Leaf type names are meaningful: a `skill` leaf is loaded and executed as an Agent Skill; other types are treated as opaque boundaries.
+
+### Loading Model
+
+| Phase | Trigger | What happens |
+|---|---|---|
+| **Load** | Session start | Full `HARNESS.md` is injected, establishing the agent's role |
+| **Discovery** | Task received | Agent reads routing files to find relevant branches |
+| **Activation** | Routing aligns | Agent reads the content of a relevant skill, directory, or file |
+| **Execution** | Action required | Agent runs a script bundled within a skill |
 
 ## Relationship to Agent Skills
 
-Harnesses build on the [Agent Skills](https://github.com/agentskills/agentskills) standard. A skill is an atomic unit of capability; a harness bundles many skills together to define a complete agent role.
+Harnesses build on the [Agent Skills](https://github.com/agentskills/agentskills) standard. A skill is an atomic unit of capability; a harness bundles many skills together to define a complete agent role — like a job title where skills are the job requirements.
 
 ## Documentation
 
-See [agentharnesses.io](https://agentharnesses.io) for the full specification and guides.
+See [agentharnesses.io](https://agentharnesses.io) for the full specification, quickstart, best practices, and client implementation guide.
 
 ## Reference Implementation
 
@@ -45,4 +94,4 @@ The [`examples/`](./examples) directory contains three example harnesses:
 
 ## License
 
-Code: Apache 2.0 | Documentation: CC-BY-4.0 
+Code: Apache 2.0 | Documentation: CC-BY-4.0
