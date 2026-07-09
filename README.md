@@ -72,6 +72,23 @@ Harnesses build on the [Agent Skills](https://github.com/agentskills/agentskills
 
 See [agentharnesses.io](https://agentharnesses.io) for the full specification, quickstart, best practices, and client implementation guide.
 
+## CLI
+
+The [`agentharnesses-cli`](https://github.com/agentharnesses/cli) package provides the `ahar` command for scaffolding and managing harnesses.
+
+```bash
+pip install agentharnesses-cli
+```
+
+```bash
+ahar init              # scaffold a new harness in the current directory
+ahar init my-harness   # scaffold with a specific name
+ahar validate ./my-harness
+ahar prompt ./my-harness
+```
+
+`ahar init` creates a ready-to-use harness directory including `HARNESS.md`, a `.claude/settings.json` that registers it as a Claude Code plugin, and the metaskill for progressive harness exploration.
+
 ## Reference Implementation
 
 The [`harnesses-ref`](./harnesses-ref) directory contains a Python reference implementation and CLI for validating, reading, and rendering harnesses.

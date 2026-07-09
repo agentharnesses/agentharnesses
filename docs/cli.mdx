@@ -1,0 +1,84 @@
+---
+title: CLI
+description: Install and use the agentharnesses CLI to scaffold and manage harnesses.
+---
+
+# CLI
+
+The `ahar` CLI scaffolds and manages Agent Harnesses.
+
+## Installation
+
+```bash
+pip install agentharnesses-cli
+```
+
+## Commands
+
+### `ahar init`
+
+Scaffold a new harness in the current directory:
+
+```bash
+ahar init
+```
+
+Optionally specify a name (defaults to the directory name):
+
+```bash
+ahar init my-harness
+```
+
+This creates:
+
+```
+my-harness/
+├── HARNESS.md                       # entry point and agent identity
+├── README.md                        # human-facing description
+├── .gitignore
+├── .claude/settings.json            # registers the harness as a Claude Code plugin
+├── skills/
+│   └── SKILLS.md                    # skill index
+└── references/
+    └── REFERENCES.md                # reference index
+```
+
+When using the `claude` preset (default), `ahar init` also installs:
+
+```
+├── .claude/skills/agent-harnesses/  # metaskill for progressive harness exploration
+└── skills/
+    └── maintenance/
+        ├── SKILLS.md
+        └── modify-harness/
+            └── SKILL.md
+```
+
+The metaskill is cloned fresh from [agentharnesses/metaskill](https://github.com/agentharnesses/metaskill) at init time.
+
+### `ahar validate`
+
+Validate a harness directory structure:
+
+```bash
+ahar validate ./my-harness
+```
+
+### `ahar read`
+
+Read a property from a harness's `HARNESS.md` frontmatter:
+
+```bash
+ahar read ./my-harness name
+ahar read ./my-harness description
+```
+
+### `ahar prompt`
+
+Render a harness as prompt XML for agent injection:
+
+```bash
+ahar prompt ./my-harness
+```
+
+These commands are backed by [harnesses-ref](https://pypi.org/project/harnesses-ref/), the reference implementation for the Agent Harnesses standard.

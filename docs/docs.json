@@ -18,6 +18,7 @@
     "pages": [
       "home",
       "specification",
+      "cli",
       "clients",
       {
         "group": "For harness creators",
